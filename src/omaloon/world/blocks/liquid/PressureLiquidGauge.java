@@ -116,7 +116,15 @@ public class PressureLiquidGauge extends Block {
 				pressure().getPressure(pressure().getMain()) > 0 ? maxColor : minColor,
 				Math.abs(p)
 			);
-			Draw.rect(gaugeRegion, x, y, (rotdeg() + 90) % 180 - 90 + (Math.abs(p) > 1 ? Mathf.randomSeed((long) Time.time, -360f, 360f) : p * 180f));
+			Draw.rect(gaugeRegion,
+				x,
+				y,
+				(rotdeg() + 90) % 180 - 90 + (
+					pressure().getPressure(pressure().getMain()) > pressureConfig.maxPressure + 1 ||
+					pressure().getPressure(pressure().getMain()) < pressureConfig.minPressure - 1
+						? Mathf.randomSeed((long) Time.time, -360f, 360f) : p * 180f
+				)
+			);
 		}
 
 		@Override

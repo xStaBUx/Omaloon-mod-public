@@ -36,6 +36,13 @@ public class PressureLiquidSource extends Block {
 		config(SourceEntry.class, (PressureLiquidSourceBuild build, SourceEntry entry) -> {
 			build.liquid = entry.fluid == null ? -1 : entry.fluid.id;
 			build.targetAmount = entry.amount;
+
+			Vars.content.liquids().each(liquid -> {
+				build.pressure.liquids[liquid.id] = 0;
+				build.pressure.pressures[liquid.id] = 0;
+			});
+
+			build.pressure.air = build.pressure.pressure = 0;
 		});
 	}
 
@@ -75,6 +82,11 @@ public class PressureLiquidSource extends Block {
 
 		public int liquid = -1;
 		public float targetAmount;
+
+		@Override
+		public boolean acceptsPressurizedFluid(HasPressure from, Liquid liquid, float amount) {
+			return HasPressure.super.acceptsPressurizedFluid(from, liquid, amount) && liquid == Vars.content.liquid(this.liquid);
+		}
 
 		@Override
 		public void buildConfiguration(Table cont) {
@@ -140,6 +152,11 @@ public class PressureLiquidSource extends Block {
 			new PressureSection().mergeFlood(this);
 		}
 
+		@Override
+		public boolean outputsPressurizedFluid(HasPressure to, Liquid liquid, float amount) {
+			return HasPressure.super.outputsPressurizedFluid(to, liquid, amount) && liquid == Vars.content.liquid(this.liquid);
+		}
+
 		@Override public PressureModule pressure() {
 			return pressure;
 		}
@@ -158,7 +175,7 @@ public class PressureLiquidSource extends Block {
 
 		@Override
 		public void updateTile() {
-			super.updateTile();
+			pressure.section.updateTransfer();
 
 			float difference = (Vars.content.liquid(liquid) == null ? targetAmount : Mathf.maxZero(targetAmount)) - (Vars.content.liquid(liquid) == null ? pressure.air : pressure.liquids[liquid]);
 

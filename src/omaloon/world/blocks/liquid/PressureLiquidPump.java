@@ -213,12 +213,9 @@ public class PressureLiquidPump extends Block {
 		public float pumpEfficiency() {
 			float a = 0;
 			for(int i = 0; i < chainSize(); i++) {
-				a += pressureDifference * Mathf.pow(efficiencyScale, i);
+				a += pressureDifference;
 			}
-			return a * ((pressureDifference)/((getFrom() == null ? pressureDifference : Math.max(
-				pressureDifference,
-				Math.abs(getFrom().pressure().getPressure(configurable ? Vars.content.liquid(filter) : getFrom().pressure().getMain()))
-			))));
+			return a;
 		}
 
 		/**
