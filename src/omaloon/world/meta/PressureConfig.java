@@ -78,7 +78,7 @@ public class PressureConfig {
 	};
 
 	public void addStats(Stats stats) {
-		stats.add(Stat.liquidCapacity, fluidCapacity, StatUnit.liquidUnits);
+		stats.add(OlStats.fluidCapacity, Core.bundle.get("stat.omaloon-fluid-capacity.format"), fluidCapacity/8f, fluidCapacity/8f, fluidCapacity/8f);
 
 		stats.add(OlStats.maxPressure, maxPressure, OlStats.pressureUnit);
 		stats.add(OlStats.minPressure, minPressure, OlStats.pressureUnit);
