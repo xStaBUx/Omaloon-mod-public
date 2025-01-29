@@ -4,6 +4,7 @@ import arc.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.content.*;
+import mindustry.game.*;
 import mindustry.type.*;
 import mindustry.world.meta.*;
 import omaloon.type.liquid.*;
@@ -56,17 +57,25 @@ public class OlLiquids {
 				addViscosity(glacium, 13);
 				addDensity(tiredGlacium, 1300);
 	      addViscosity(tiredGlacium, 13);
+
+	    if (Core.settings.getBool("omaloon-display-liquid-stats", true)) Events.on(EventType.ContentInitEvent.class, e -> {
+				densities.each(map -> {
+					map.key.stats.add(OlStats.density, map.value, OlStats.densityUnit);
+				});
+				viscosities.each(map -> {
+					map.key.checkStats();
+					map.key.stats.remove(Stat.viscosity);
+					map.key.stats.add(Stat.viscosity, Core.bundle.get("stat.omaloon-viscosity"), map.key.viscosity * 100f ,Strings.autoFixed(map.value/60f, 2) + " " + OlStats.viscosityUnit.localized());
+				});
+			});
     }
 
 		public static void addDensity(Liquid liquid, float density) {
 			densities.put(liquid, density);
-			liquid.stats.add(OlStats.density, density, OlStats.densityUnit);
 		}
 
 		public static void addViscosity(Liquid liquid, float viscosity) {
 			viscosities.put(liquid, viscosity);
-			liquid.stats.remove(Stat.viscosity);
-			liquid.stats.add(Stat.viscosity, Strings.autoFixed(viscosity/60f, 2), OlStats.viscosityUnit);
 		}
 
 		public static float getDensity(@Nullable Liquid liquid) {
