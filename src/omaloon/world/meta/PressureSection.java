@@ -137,7 +137,7 @@ public class PressureSection {
 					entry.value.pressureConfig().fluidCapacity,
 					entry.key.pressureConfig().fluidCapacity,
 					OlLiquids.getDensity(main),
-					0
+					1
 				) / (2f * links.size);
 
 				float flow = Mathf.clamp(
@@ -186,7 +186,7 @@ public class PressureSection {
 				entry.value.pressureConfig().fluidCapacity,
 				entry.key.pressureConfig().fluidCapacity,
 				OlLiquids.getDensity(null),
-				0
+				1
 			) / (2f * links.size);
 
 			float flow = Mathf.clamp(

@@ -17,6 +17,7 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.liquid.*;
+import omaloon.content.*;
 import omaloon.ui.elements.*;
 import omaloon.world.interfaces.*;
 import omaloon.world.meta.*;
@@ -188,9 +189,12 @@ public class PressureLiquidSource extends Block {
 		public void updateTile() {
 			pressure.section.updateTransfer();
 
-			float difference = (Vars.content.liquid(liquid) == null ? targetAmount : Mathf.maxZero(targetAmount)) - (Vars.content.liquid(liquid) == null ? pressure.air : pressure.liquids[liquid]);
-
-			addFluid(Vars.content.liquid(liquid), difference);
+			pressure.air = Vars.content.liquid(liquid) == null ? targetAmount : 0;
+			pressure.pressure = pressure.air / pressureConfig.fluidCapacity * OlLiquids.getDensity(null);
+			Vars.content.liquids().each(liq -> {
+				pressure.liquids[liq.id] = liq.id == liquid ? Mathf.maxZero(targetAmount) : 0;
+				pressure.pressures[liq.id] = pressure.liquids[liq.id] / pressureConfig.fluidCapacity * OlLiquids.getDensity(liq);
+			});
 		}
 
 		@Override
