@@ -1,15 +1,23 @@
 package omaloon.ai.drone;
 
+import arc.Events;
+import arc.math.Mathf;
 import arc.struct.Queue;
 import arc.util.Nullable;
 import arc.util.Tmp;
 import mindustry.entities.units.BuildPlan;
+import mindustry.game.EventType;
 import mindustry.game.Teams;
 import mindustry.gen.Call;
 import mindustry.gen.Unit;
+import mindustry.type.Item;
 import mindustry.world.Tile;
+import mindustry.world.blocks.ConstructBlock;
 import mindustry.world.blocks.storage.CoreBlock;
 import omaloon.ai.DroneAI;
+
+import static mindustry.Vars.mineTransferRange;
+import static mindustry.Vars.tilesize;
 
 public class UtilityDroneAI extends DroneAI {
     public float mineRangeScl = 0.75f;
@@ -21,7 +29,7 @@ public class UtilityDroneAI extends DroneAI {
 
     @Override
     public void updateMovement() {
-        unit.updateBuilding = true;
+        unit.updateBuilding = false;
         unit.mineTile = null;
         tryTransportItems();
 
@@ -59,6 +67,7 @@ public class UtilityDroneAI extends DroneAI {
         //IMPORTANT unit.plans.size must be 0
         for (int i = 0; i < plans.size; i++) {
             BuildPlan buildPlan = plans.first();
+
             if (!unit.shouldSkip(buildPlan, core) && owner.within(buildPlan,owner.type.buildRange)) {
                 moveTo(buildPlan.tile(), unit.type.buildRange * buildRangeScl, 30f);
                 break;
@@ -67,10 +76,20 @@ public class UtilityDroneAI extends DroneAI {
             plans.addLast(buildPlan);
             totalSkipped++;
         }
-        if (totalSkipped == plans.size) return false;
+//        if (totalSkipped == plans.size) return false;
 
         unit.plans = plans;
+        unit.updateBuilding = true;
         unit.updateBuildLogic();
+        if(unit.buildPlan()!=null) unit.lookAt(unit.buildPlan());
+        for (BuildPlan plan : plans) {
+            if(plan.tile().build instanceof ConstructBlock.ConstructBuild it){
+                if (it.progress>0 && !plan.initialized) {
+                    plan.initialized=true;
+                }
+            }
+        }
+        unit.updateBuilding = false;
         unit.plans = prev;
         return true;
     }
