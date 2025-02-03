@@ -104,67 +104,6 @@ public class BlastTower extends Block {
         }
 
         @Override
-        public void updateTile() {
-            updatePressure();
-            dumpPressure();
-            super.updateTile();
-
-            targets.clear();
-            Units.nearbyEnemies(team, x, y, range, u -> {
-                if(u.checkTarget(targetAir, targetGround)) {
-                    targets.add(u);
-                }
-            });
-
-            indexer.allBuildings(x, y, range, b -> {
-                if(b.team != team){
-                    targets.add(b);
-                }
-            });
-
-            float effMultiplier = efficiencyMultiplier();
-
-            if (targets.size > 0 && canConsume()) {
-                smoothProgress = Mathf.approach(smoothProgress, 1f, Time.delta / chargeTime * effMultiplier);
-
-                if (efficiency > 0 && (charge += Time.delta * effMultiplier) >= reload && smoothProgress >= 0.99f) {
-                    shoot();
-                    charge = 0f;
-                }
-            } else {
-                smoothProgress = Mathf.approach(smoothProgress, 0f, Time.delta / chargeTime * effMultiplier);
-            }
-        }
-
-        public void shoot() {
-            if (!canConsume()) return;
-
-            consume();
-            lastShootTime = Time.time;
-            Effect.shake(shake, shake, this);
-            shootSound.at(this);
-            waveEffect.layer(Layer.blockUnder).at(x, y, range, waveColor);
-            tile.getLinkedTiles(t -> OlFx.hammerHit.layer(Layer.blockUnder).at(
-                t.worldx(), t.worldy(),
-                angleTo(t.worldx(), t.worldy()) + Mathf.range(360f),
-                Tmp.c1.set(t.floor().mapColor).mul(1.5f + Mathf.range(0.15f)))
-            );
-
-            float damageMultiplier = efficiencyMultiplier();
-            for (Teamc target : targets) {
-                hitEffect.at(target.x(), target.y(), hitColor);
-                if(target instanceof Healthc){
-                    ((Healthc)target).damage(damage * damageMultiplier);
-                }
-                if(target instanceof Statusc){
-                    ((Statusc)target).apply(status, statusDuration);
-                }
-            }
-
-            smoothProgress = 0f;
-        }
-
-        @Override
         public void draw() {
             Draw.rect(region, x, y);
 
@@ -180,15 +119,6 @@ public class BlastTower extends Block {
         public void drawSelect(){
             Drawf.dashCircle(x, y, range, Pal.accent);
         }
-
-		    public float efficiencyMultiplier() {
-				    float val = 1f;
-				    if (!useConsumerMultiplier) return val;
-				    for (Consume consumer : consumers) {
-						    val *= consumer.efficiencyMultiplier(this);
-				    }
-				    return val;
-		    }
 
 	      @Override
 	      public void onProximityUpdate() {
