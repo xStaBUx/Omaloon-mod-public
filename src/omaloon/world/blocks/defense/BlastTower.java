@@ -7,6 +7,7 @@ import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
+import asmlib.annotations.DebugAST;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -16,6 +17,7 @@ import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
+import omaloon.annotations.AutoImplement;
 import omaloon.annotations.Load;
 import omaloon.content.*;
 import omaloon.world.interfaces.*;
@@ -87,8 +89,7 @@ public class BlastTower extends Block {
         return new TextureRegion[]{region, hammerRegion};
     }
 
-    public class BlastTowerBuild extends Building implements HasPressure {
-        public PressureModule pressure = new PressureModule();
+    public class BlastTowerBuild extends Building implements HasPressureImpl {
         public float smoothProgress = 0f;
         public float charge;
         public float lastShootTime = -reload;
@@ -182,31 +183,23 @@ public class BlastTower extends Block {
         }
 
         @Override
+        @DebugAST
         public void write(Writes write) {
             super.write(write);
             write.f(lastShootTime);
             write.f(smoothProgress);
             write.f(charge);
-            pressure.write(write);
+            AutoImplement.Util.Inject(HasPressureImpl.class);
         }
 
         @Override
+        @DebugAST
         public void read(Reads read, byte revision) {
             super.read(read, revision);
             lastShootTime = read.f();
             smoothProgress = read.f();
             charge = read.f();
-            pressure.read(read);
-        }
-
-        @Override
-        public PressureModule pressure() {
-            return pressure;
-        }
-
-        @Override
-        public PressureConfig pressureConfig() {
-            return pressureConfig;
+            AutoImplement.Util.Inject(HasPressureImpl.class);
         }
     }
 }

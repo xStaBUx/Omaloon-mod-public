@@ -115,8 +115,7 @@ public class PressureLiquidValve extends LiquidBlock {
 		stats.add(OlStats.pressureFlow, Mathf.round(pressureLoss * 60f, 2), OlStats.pressureSecond);
 	}
 
-	public class PressureLiquidValveBuild extends LiquidBuild implements HasPressure {
-		PressureModule pressure = new PressureModule();
+	public class PressureLiquidValveBuild extends LiquidBuild implements HasPressureImpl {
 
 		public float draining;
 		public float effectInterval;
@@ -136,7 +135,7 @@ public class PressureLiquidValve extends LiquidBlock {
 
 		@Override
 		public boolean connects(HasPressure to) {
-			return HasPressure.super.connects(to) && to instanceof PressureLiquidValveBuild ?
+			return HasPressureImpl.super.connects(to) && to instanceof PressureLiquidValveBuild ?
 				       (front() == to || back() == to) && (to.front() == this || to.back() == this) :
 				       (front() == to || back() == to);
 		}
@@ -168,24 +167,16 @@ public class PressureLiquidValve extends LiquidBlock {
 			if (back() instanceof HasPressure back && connected(back)) tiling |= inverted ? 1 : 2;
 		}
 
-		@Override public PressureModule pressure() {
-			return pressure;
-		}
-		@Override public PressureConfig pressureConfig() {
-			return pressureConfig;
-		}
-
 		@Override
 		public void read(Reads read, byte revision) {
 			super.read(read, revision);
-			pressure.read(read);
 			jammed = read.bool();
 			draining = read.f();
 		}
 
 		@Override
 		public void updatePressure() {
-			HasPressure.super.updatePressure();
+			HasPressureImpl.super.updatePressure();
 			if (getPressure() >= jamPoint) jammed = false;
 			if (jammed) return;
 			if (getPressure() <= openMin) {
@@ -222,7 +213,6 @@ public class PressureLiquidValve extends LiquidBlock {
 		@Override
 		public void write(Writes write) {
 			super.write(write);
-			pressure.write(write);
 			write.bool(jammed);
 			write.f(draining);
 		}

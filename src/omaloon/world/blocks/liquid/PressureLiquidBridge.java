@@ -142,8 +142,7 @@ public class PressureLiquidBridge extends TubeItemBridge {
 		pressureConfig.addStats(stats);
 	}
 
-	public class PressureLiquidBridgeBuild extends TubeItemBridgeBuild implements HasPressure {
-		PressureModule pressure = new PressureModule();
+	public class PressureLiquidBridgeBuild extends TubeItemBridgeBuild implements HasPressureImpl {
 
 		@Override
 		public boolean acceptLiquid(Building source, Liquid liquid) {
@@ -188,24 +187,12 @@ public class PressureLiquidBridge extends TubeItemBridge {
 
 		@Override
 		public Seq<HasPressure> nextBuilds(boolean flow) {
-			Seq<HasPressure> o = HasPressure.super.nextBuilds(flow);
+			Seq<HasPressure> o = HasPressureImpl.super.nextBuilds(flow);
 			if (Vars.world.build(link) instanceof PressureLiquidBridgeBuild b) o.add(b);
 			for(int pos : incoming.items) if (Vars.world.build(pos) instanceof PressureLiquidBridgeBuild b) o.add(b);
 			return o;
 		}
 
-		@Override public PressureModule pressure() {
-			return pressure;
-		}
-		@Override public PressureConfig pressureConfig() {
-			return pressureConfig;
-		}
-
-		@Override
-		public void read(Reads read, byte revision) {
-			super.read(read, revision);
-			pressure.read(read);
-		}
 
 		@Override
 		public void updateTile() {
@@ -261,16 +248,5 @@ public class PressureLiquidBridge extends TubeItemBridge {
 			}
 		}
 
-		@Override
-		public void write(Writes write) {
-			super.write(write);
-			pressure.write(write);
-		}
-
-		@Override
-		public void read(Reads read){
-			super.read(read);
-			pressure.read(read);
-		}
 	}
 }

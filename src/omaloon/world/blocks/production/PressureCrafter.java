@@ -2,6 +2,7 @@ package omaloon.world.blocks.production;
 
 import arc.util.*;
 import arc.util.io.*;
+import asmlib.annotations.DebugAST;
 import mindustry.world.blocks.production.*;
 import mindustry.world.consumers.*;
 import omaloon.world.interfaces.*;
@@ -32,9 +33,8 @@ public class PressureCrafter extends GenericCrafter {
 		pressureConfig.addStats(stats);
 		if (outputPressure != 0) stats.add(OlStats.outputPressure, Strings.autoFixed(outputPressure, 2), OlStats.pressureUnits);
 	}
-
-	public class PressureCrafterBuild extends GenericCrafterBuild implements HasPressure {
-		PressureModule pressure = new PressureModule();
+@DebugAST
+	public class PressureCrafterBuild extends GenericCrafterBuild implements HasPressureImpl {
 
 		public float efficiencyMultiplier() {
 			float val = 1;
@@ -53,30 +53,11 @@ public class PressureCrafter extends GenericCrafter {
 			return super.getProgressIncrease(baseTime) * efficiencyMultiplier();
 		}
 
-		@Override public PressureModule pressure() {
-			return pressure;
-		}
-		@Override public PressureConfig pressureConfig() {
-			return pressureConfig;
-		}
-
-		@Override
-		public void read(Reads read, byte revision) {
-			super.read(read, revision);
-			pressure.read(read);
-		}
-
 		@Override
 		public void updateTile() {
 			super.updateTile();
 			updatePressure();
 			dumpPressure();
-		}
-
-		@Override
-		public void write(Writes write) {
-			super.write(write);
-			pressure.write(write);
 		}
 	}
 }

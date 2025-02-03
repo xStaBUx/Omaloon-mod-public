@@ -107,8 +107,8 @@ public class PressureLiquidPump extends LiquidBlock {
 		stats.add(OlStats.pressureFlow, Mathf.round(pressureTransfer * 60f, 2), OlStats.pressureSecond);
 	}
 
-	public class PressureLiquidPumpBuild extends LiquidBuild implements HasPressure {
-		PressureModule pressure = new PressureModule();
+	public class PressureLiquidPumpBuild extends LiquidBuild implements HasPressureImpl {
+
 
 		public int tiling;
 
@@ -122,7 +122,7 @@ public class PressureLiquidPump extends LiquidBlock {
 		}
 
 		@Override public boolean connects(HasPressure to) {
-			return HasPressure.super.connects(to) && !(to instanceof PressureLiquidPumpBuild) && (front() == to || back() == to);
+			return HasPressureImpl.super.connects(to) && !(to instanceof PressureLiquidPumpBuild) && (front() == to || back() == to);
 		}
 
 		@Override
@@ -168,18 +168,6 @@ public class PressureLiquidPump extends LiquidBlock {
 			if (back() instanceof HasPressure back && connected(back)) tiling |= inverted ? 1 : 2;
 		}
 
-		@Override public PressureModule pressure() {
-			return pressure;
-		}
-		@Override public PressureConfig pressureConfig() {
-			return pressureConfig;
-		}
-
-		@Override
-		public void read(Reads read, byte revision) {
-			super.read(read, revision);
-			pressure.read(read);
-		}
 
 		@Override
 		public void updateTile() {
@@ -223,10 +211,5 @@ public class PressureLiquidPump extends LiquidBlock {
 			}
 		}
 
-		@Override
-		public void write(Writes write) {
-			super.write(write);
-			pressure.write(write);
-		}
 	}
 }

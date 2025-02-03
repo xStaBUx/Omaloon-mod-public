@@ -10,6 +10,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import arclibrary.graphics.*;
+import asmlib.annotations.DebugAST;
 import mindustry.*;
 import mindustry.content.*;
 import mindustry.entities.*;
@@ -133,8 +134,7 @@ public class Shelter extends Block {
 		Draw.rect(region, plan.drawx(), plan.drawy(), rot - 90);
 	}
 
-	public class ShelterBuild extends Building implements HasPressure {
-		public PressureModule pressure = new PressureModule();
+	public class ShelterBuild extends Building implements HasPressureImpl {
 
 		public float rot = 90;
 		public float shieldDamage = 0;
@@ -217,17 +217,11 @@ public class Shelter extends Block {
 			return false;
 		}
 
-		@Override public PressureModule pressure() {
-			return pressure;
-		}
-		@Override public PressureConfig pressureConfig() {
-			return pressureConfig;
-		}
 
 		@Override
+		@DebugAST
 		public void read(Reads read, byte revision) {
 			super.read(read, revision);
-			pressure.read(read);
 			rot = read.f();
 			shieldDamage = read.f();
 			warmup = read.f();
@@ -281,9 +275,9 @@ public class Shelter extends Block {
 		}
 
 		@Override
+		@DebugAST
 		public void write(Writes write) {
 			super.write(write);
-			pressure.write(write);
 			write.f(rot);
 			write.f(shieldDamage);
 			write.f(warmup);
