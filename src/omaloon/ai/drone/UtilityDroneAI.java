@@ -1,23 +1,20 @@
 package omaloon.ai.drone;
 
-import arc.Events;
-import arc.math.Mathf;
 import arc.struct.Queue;
-import arc.util.Nullable;
+import arc.util.Time;
 import arc.util.Tmp;
+import mindustry.content.Fx;
 import mindustry.entities.units.BuildPlan;
-import mindustry.game.EventType;
-import mindustry.game.Teams;
 import mindustry.gen.Call;
 import mindustry.gen.Unit;
 import mindustry.type.Item;
 import mindustry.world.Tile;
 import mindustry.world.blocks.ConstructBlock;
 import mindustry.world.blocks.storage.CoreBlock;
+import ol.gen.OlCall;
 import omaloon.ai.DroneAI;
 
 import static mindustry.Vars.mineTransferRange;
-import static mindustry.Vars.tilesize;
 
 public class UtilityDroneAI extends DroneAI {
     public float mineRangeScl = 0.75f;
@@ -44,18 +41,12 @@ public class UtilityDroneAI extends DroneAI {
         CoreBlock.CoreBuild core = unit.closestCore();
 
         if (core != null && !unit.within(core, owner.type.range)) {
-            for (int i = 0; i < unit.stack.amount; i++) {
-                Call.transferItemToUnit(unit.stack.item, unit.x, unit.y, owner);
-            }
             core = owner.closestCore();
             if(owner.within(core,mineTransferRange)){
-                Item item = owner.item();
-                int accepted = core.acceptStack(item,owner.stack().amount, owner);
-                if(accepted > 0){
-                    Call.transferItemTo(owner, item, accepted,
-                        owner.x,
-                        owner.y,
-                        core);
+                OlCall.chainTransfer(unit.stack.item,unit.x,unit.y,owner,core);
+            }else{
+                for (int i = 0; i < unit.stack.amount; i++) {
+                    Call.transferItemToUnit(unit.stack.item, unit.x, unit.y, owner);
                 }
             }
         } else {
@@ -79,7 +70,7 @@ public class UtilityDroneAI extends DroneAI {
         for (int i = 0; i < plans.size; i++) {
             BuildPlan buildPlan = plans.first();
 
-            if (!unit.shouldSkip(buildPlan, core) && owner.within(buildPlan,owner.type.buildRange)) {
+            if (!unit.shouldSkip(buildPlan, core) && owner.within(buildPlan, owner.type.buildRange)) {
                 moveTo(buildPlan.tile(), unit.type.buildRange * buildRangeScl, 30f);
                 break;
             }
@@ -87,16 +78,20 @@ public class UtilityDroneAI extends DroneAI {
             plans.addLast(buildPlan);
             totalSkipped++;
         }
-//        if (totalSkipped == plans.size) return false;
+        if (totalSkipped == plans.size && !(owner.buildPlan().tile().build instanceof ConstructBlock.ConstructBuild))
+            return false;
+        if (!owner.updateBuilding) return false;
+        /*if(!Vars.headless && owner== Vars.player.unit()){
 
+        }*/
         unit.plans = plans;
         unit.updateBuilding = true;
         unit.updateBuildLogic();
-        if(unit.buildPlan()!=null) unit.lookAt(unit.buildPlan());
+        if (unit.buildPlan() != null) unit.lookAt(unit.buildPlan());
         for (BuildPlan plan : plans) {
-            if(plan.tile().build instanceof ConstructBlock.ConstructBuild it){
-                if (it.progress>0 && !plan.initialized) {
-                    plan.initialized=true;
+            if (plan.tile().build instanceof ConstructBlock.ConstructBuild it) {
+                if (it.progress > 0 && !plan.initialized) {
+                    plan.initialized = true;
                 }
             }
         }
