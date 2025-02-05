@@ -4,28 +4,38 @@ import arc.util.io.Reads;
 import arc.util.io.Writes;
 import omaloon.annotations.AutoImplement;
 import omaloon.world.meta.PressureConfig;
+import omaloon.world.meta.PressureSection;
 import omaloon.world.modules.PressureModule;
 
-import static omaloon.annotations.AutoImplement.Inject.InjectPosition.AfterSuper;
+import static omaloon.annotations.AutoImplement.Inject.InjectPosition.*;
 
 
 @AutoImplement
 public interface HasPressureImpl extends HasPressure {
 
-    PressureModule __pressure__ = new PressureModule();
+    PressureModule pressure = new PressureModule();
 
     default PressureModule pressure() {
-        return __pressure__;
+        return pressure;
     }
 
+    @AutoImplement.Inject(Tail)
+    default void onProximityUpdate(){
+        new PressureSection().mergeFlood(this);
+    }
+
+    @AutoImplement.Inject(Tail)
+    default void updateTile() {
+        updatePressure();
+    }
     @AutoImplement.Inject(AfterSuper)
     default void write(Writes writes) {
-        __pressure__.write(writes);
+        pressure.write(writes);
     }
 
     @AutoImplement.Inject(AfterSuper)
     default void read(Reads reads, byte b) {
-        __pressure__.read(reads);
+        pressure.read(reads);
     }
 
     @Override

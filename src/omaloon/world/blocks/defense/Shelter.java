@@ -9,7 +9,7 @@ import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
-import arclibrary.graphics.*;;
+import arclibrary.graphics.*;
 import mindustry.*;
 import mindustry.content.*;
 import mindustry.entities.*;
@@ -85,7 +85,6 @@ public class Shelter extends Block {
 		solid = true;
 		configurable = true;
 		saveConfig = true;
-		hasLiquids = true;
 		group = BlockGroup.projectors;
 		ambientSound = Sounds.shield;
 		ambientSoundVolume = 0.08f;
@@ -134,6 +133,7 @@ public class Shelter extends Block {
 	}
 
 	public class ShelterBuild extends Building implements HasPressureImpl {
+
 
 		public float rot = 90;
 		public float shieldDamage = 0;
@@ -216,7 +216,6 @@ public class Shelter extends Block {
 			return false;
 		}
 
-
 		@Override
 		public void read(Reads read, byte revision) {
 			super.read(read, revision);
@@ -228,8 +227,8 @@ public class Shelter extends Block {
 
 		@Override
 		public void updateTile() {
+			HasPressureImpl.super.updateTile();
 			updatePressure();
-			dumpPressure();
 			if (efficiency > 0) {
 				if (shieldDamage >= 0) {
 					shieldDamage -= edelta() * (broken ? rechargeBroken : rechargeStandard);
@@ -240,12 +239,15 @@ public class Shelter extends Block {
 				if (broken) {
 					warmup = Mathf.approachDelta(warmup, 0f, warmupTime);
 				} else {
-					warmup = Mathf.approachDelta(warmup, efficiency, warmupTime);
+					warmup = Mathf.approachDelta(warmup, efficiency * efficiencyMultiplier(), warmupTime);
+
+					float radius = shieldRange * warmup + shieldBuffer;
+
 					Groups.bullet.intersect(
-						x - shieldRange - shieldBuffer,
-						y - shieldRange - shieldBuffer,
-						(shieldRange + shieldBuffer) * 2f,
-						(shieldRange + shieldBuffer) * 2f,
+						x - radius,
+						y - radius,
+						radius * 2f,
+						radius * 2f,
 						b -> {
 							if (b.team == Team.derelict) {
 								float distance = Mathf.dst(x, y, b.x, b.y);
@@ -275,6 +277,7 @@ public class Shelter extends Block {
 		@Override
 		public void write(Writes write) {
 			super.write(write);
+			pressure.write(write);
 			write.f(rot);
 			write.f(shieldDamage);
 			write.f(warmup);

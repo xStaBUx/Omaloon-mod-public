@@ -17,7 +17,7 @@ public class ConsumeTurret extends Turret {
 	public PressureConfig pressureConfig = new PressureConfig();
 
 	/**
-	 * if true, min range this turret can only target
+	 * If true, this turret cannot target things that are closer than the minRange
 	 */
 	public boolean minRangeShoot = true;
 
@@ -66,6 +66,7 @@ public class ConsumeTurret extends Turret {
 			return canConsume();
 		}
 
+
 		@Override public BulletType peekAmmo() {
 			return shootType;
 		}
@@ -82,7 +83,6 @@ public class ConsumeTurret extends Turret {
 		@Override
 		public void updateTile() {
 			updatePressure();
-			dumpPressure();
 			super.updateTile();
 		}
 
