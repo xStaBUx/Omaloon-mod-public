@@ -171,7 +171,7 @@ public class PressureLiquidPump extends Block {
 		}
 
 		@Override public boolean connects(HasPressure to) {
-			return HasPressure.super.connects(to) && (front() == to || back() == to) && (!(to instanceof PressureLiquidPumpBuild) || to.rotation() == rotation);
+			return HasPressureImpl.super.connects(to) && (front() == to || back() == to) && (!(to instanceof PressureLiquidPumpBuild) || to.rotation() == rotation);
 		}
 
 		@Override

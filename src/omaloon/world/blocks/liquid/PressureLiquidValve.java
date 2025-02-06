@@ -190,14 +190,6 @@ public class PressureLiquidValve extends Block {
 			return HasPressureImpl.super.outputsPressurizedFluid(to, liquid, amount) && (liquid == to.pressure().getMain() || liquid == null || pressure.getMain() == null || to.pressure().getMain() == null);
 		}
 
-            new PressureSection().mergeFlood(this);
-        }
-
-        @Override
-        public boolean outputsPressurizedFluid(HasPressure to, Liquid liquid, float amount) {
-            return HasPressureImpl.super.outputsPressurizedFluid(to, liquid, amount) && (liquid == to.pressure().getMain() || liquid == null || pressure.getMain() == null || to.pressure().getMain() == null);
-        }
-
 		@Override
 		public void read(Reads read, byte revision) {
 			super.read(read, revision);

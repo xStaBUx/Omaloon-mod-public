@@ -102,7 +102,7 @@ public class PressureLiquidSource extends Block {
 
 		@Override
 		public boolean acceptsPressurizedFluid(HasPressure from, Liquid liquid, float amount) {
-			return HasPressure.super.acceptsPressurizedFluid(from, liquid, amount) && liquid == Vars.content.liquid(this.liquid);
+			return HasPressureImpl.super.acceptsPressurizedFluid(from, liquid, amount) && liquid == Vars.content.liquid(this.liquid);
 		}
 
 		@Override
@@ -164,7 +164,7 @@ public class PressureLiquidSource extends Block {
 
 		@Override
 		public boolean outputsPressurizedFluid(HasPressure to, Liquid liquid, float amount) {
-			return HasPressure.super.outputsPressurizedFluid(to, liquid, amount) && liquid == Vars.content.liquid(this.liquid);
+			return HasPressureImpl.super.outputsPressurizedFluid(to, liquid, amount) && liquid == Vars.content.liquid(this.liquid);
 		}
 
 		@Override

@@ -18,6 +18,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.liquid.*;
 import mindustry.world.blocks.sandbox.*;
 import mindustry.world.meta.*;
+import omaloon.annotations.AutoImplement;
 import omaloon.annotations.Load;
 import omaloon.world.blocks.distribution.*;
 import omaloon.world.interfaces.*;
@@ -232,6 +233,7 @@ public class PressureLiquidBridge extends TubeItemBridge {
 		}
 
 		@Override
+        @AutoImplement.NoInject(HasPressureImpl.class)
 		public void updateTile() {
 			incoming.size = Math.min(incoming.size, maxConnections - (link == -1 ? 0 : 1));
 			incoming.shrink();
@@ -239,7 +241,6 @@ public class PressureLiquidBridge extends TubeItemBridge {
 			checkIncoming();
 
 			updatePressure();
-            BUG_NEED_TO_INJECT//I'll fix this after merge
 
 			Tile other = world.tile(link);
 			if(linkValid(tile, other)) {
