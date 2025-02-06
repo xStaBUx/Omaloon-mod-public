@@ -8,6 +8,7 @@ import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import arc.util.io.*;
+import asmlib.annotations.DebugAST;
 import mindustry.*;
 import mindustry.content.*;
 import mindustry.entities.*;
@@ -19,9 +20,11 @@ import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.meta.*;
 import mindustry.world.blocks.liquid.*;
+import omaloon.annotations.AutoImplement;
 import omaloon.annotations.Load;
 import omaloon.content.*;
 import omaloon.math.*;
+import omaloon.struct.IntRef;
 import omaloon.utils.*;
 import omaloon.world.interfaces.*;
 import omaloon.world.meta.*;
@@ -61,25 +64,25 @@ public class PressureLiquidPump extends Block {
 
 	@Override
 	public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list) {
-		var tiling = new Object() {
-			int tiling = 0;
-		};
-		Point2
-			front = new Point2(1, 0).rotate(plan.rotation).add(plan.x, plan.y),
-			back = new Point2(-1, 0).rotate(plan.rotation).add(plan.x, plan.y);
+
+		var tiling = IntRef.tmp1.zero();
+
+		int dx = Geometry.d4x(plan.rotation),dy = Geometry.d4y(plan.rotation);
+		var front = Point2.pack(plan.x + dx, plan.y + dy);
+		var back = Point2.pack(plan.x - dx, plan.y - dy);
 
 		boolean inverted = plan.rotation == 1 || plan.rotation == 2;
 		list.each(next -> {
-			if (!(next.block instanceof PressureLiquidPump)) {
-				if (new Point2(next.x, next.y).equals(front) && next.block.outputsLiquid) tiling.tiling |= inverted ? 2 : 1;
-				if (new Point2(next.x, next.y).equals(back) && next.block.outputsLiquid) tiling.tiling |= inverted ? 1 : 2;
-			}
+			var nextPoint = Point2.pack(next.x, next.y);
+			if(!next.block.outputsLiquid)return;
+			if (nextPoint == front) tiling.value |= inverted ? 0b10 : 1;
+			if (nextPoint == back) tiling.value |= inverted ? 1 : 0b10;
 		});
 
 		Draw.rect(bottomRegion, plan.drawx(), plan.drawy(), 0);
-		if (tiling.tiling != 0) Draw.rect(arrowRegion, plan.drawx(), plan.drawy(), (plan.rotation) * 90f);
-		Draw.rect(tiles[tiling.tiling], plan.drawx(), plan.drawy(), (plan.rotation + 1) * 90f % 180 - 90);
-		if (tiling.tiling == 0) Draw.rect(topRegion, plan.drawx(), plan.drawy(), (plan.rotation) * 90f);
+		if (tiling.value != 0) Draw.rect(arrowRegion, plan.drawx(), plan.drawy(), (plan.rotation) * 90f);
+		Draw.rect(tiles[tiling.value], plan.drawx(), plan.drawy(), (plan.rotation + 1) * 90f % 180 - 90);
+		if (tiling.value == 0) Draw.rect(topRegion, plan.drawx(), plan.drawy(), (plan.rotation) * 90f);
 	}
 
 	@Override public TextureRegion[] icons() {
@@ -132,9 +135,7 @@ public class PressureLiquidPump extends Block {
 		stats.add(OlStats.pressureGradient, OlStats.pressure(pressureDifference, true));
 	}
 
-	public class PressureLiquidPumpBuild extends Building implements HasPressure {
-		PressureModule pressure = new PressureModule();
-
+	public class PressureLiquidPumpBuild extends Building implements HasPressureImpl {
 		public float effectTimer;
 		public int tiling;
 		public float smoothAlpha;
@@ -170,7 +171,7 @@ public class PressureLiquidPump extends Block {
 		}
 
 		@Override public boolean connects(HasPressure to) {
-			return HasPressure.super.connects(to) && (front() == to || back() == to) && (!(to instanceof PressureLiquidPumpBuild) || to.rotation() == rotation);
+			return HasPressureImpl.super.connects(to) && (front() == to || back() == to) && (!(to instanceof PressureLiquidPumpBuild) || to.rotation() == rotation);
 		}
 
 		@Override
@@ -267,26 +268,16 @@ public class PressureLiquidPump extends Block {
 			tiling = 0;
 			boolean inverted = rotation == 1 || rotation == 2;
 			if (front() instanceof HasPressure front && connected(front)) tiling |= inverted ? 2 : 1;
-			if (back() instanceof HasPressure back && connected(back)) tiling |= inverted ? 1 : 2;
-
-			new PressureSection().mergeFlood(this);
+			if (back() instanceof HasPressure back && connected(back)) tiling |= inverted ? 1 : 2;;
 		}
 
 		@Override public boolean outputsPressurizedFluid(HasPressure to, @Nullable Liquid liquid, float amount) {
 			return false;
 		}
 
-		@Override public PressureModule pressure() {
-			return pressure;
-		}
-		@Override public PressureConfig pressureConfig() {
-			return pressureConfig;
-		}
-
 		@Override
 		public void read(Reads read, byte revision) {
 			super.read(read, revision);
-			pressure.read(read);
 			filter = read.i();
 			smoothAlpha = read.f();
 		}
@@ -297,6 +288,7 @@ public class PressureLiquidPump extends Block {
 		}
 
 		@Override
+		@AutoImplement.NoInject(HasPressureImpl.class)
 		public void updateTile() {
 			if (efficiency > 0) {
 				HasPressure front = getTo();
@@ -370,7 +362,6 @@ public class PressureLiquidPump extends Block {
 		@Override
 		public void write(Writes write) {
 			super.write(write);
-			pressure.write(write);
 			write.i(filter);
 			write.f(smoothAlpha);
 		}

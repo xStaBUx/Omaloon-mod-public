@@ -16,6 +16,7 @@ import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
+import omaloon.annotations.AutoImplement;
 import omaloon.annotations.Load;
 import omaloon.content.*;
 import omaloon.world.interfaces.*;
@@ -87,8 +88,7 @@ public class BlastTower extends Block {
         return new TextureRegion[]{region, hammerRegion};
     }
 
-    public class BlastTowerBuild extends Building implements HasPressure {
-        public PressureModule pressure = new PressureModule();
+    public class BlastTowerBuild extends Building implements HasPressureImpl {
         public float smoothProgress = 0f;
         public float charge;
         public float lastShootTime = -reload;
@@ -121,29 +121,12 @@ public class BlastTower extends Block {
         }
 
 	      @Override
-	      public void onProximityUpdate() {
-		        super.onProximityUpdate();
-
-		        new PressureSection().mergeFlood(this);
-	      }
-
-        @Override
-        public PressureModule pressure() {
-            return pressure;
-        }
-
-        @Override
-        public PressureConfig pressureConfig() {
-            return pressureConfig;
-        }
-
-	      @Override
 	      public void read(Reads read, byte revision) {
 		        super.read(read, revision);
 		        lastShootTime = read.f();
 		        smoothProgress = read.f();
 		        charge = read.f();
-		        pressure.read(read);
+              AutoImplement.Util.Inject(HasPressureImpl.class);
 	      }
 
 		    public void shoot() {
@@ -174,36 +157,37 @@ public class BlastTower extends Block {
 				    smoothProgress = 0f;
 		    }
 
+
 		    @Override
 		    public void updateTile() {
-				    updatePressure();
-				    super.updateTile();
+                AutoImplement.Util.Inject(HasPressureImpl.class);
+			    super.updateTile();
 
-				    targets.clear();
-				    Units.nearbyEnemies(team, x, y, range, u -> {
-						    if(u.checkTarget(targetAir, targetGround)) {
-							    targets.add(u);
-						    }
-				    });
+			    targets.clear();
+			    Units.nearbyEnemies(team, x, y, range, u -> {
+					    if(u.checkTarget(targetAir, targetGround)) {
+						    targets.add(u);
+					    }
+			    });
 
-				    indexer.allBuildings(x, y, range, b -> {
-						    if(b.team != team){
-							    targets.add(b);
-						    }
-				    });
+			    indexer.allBuildings(x, y, range, b -> {
+					    if(b.team != team){
+						    targets.add(b);
+					    }
+			    });
 
-				    float effMultiplier = efficiencyMultiplier();
+			    float effMultiplier = efficiencyMultiplier();
 
-				    if (targets.size > 0 && canConsume()) {
-						    smoothProgress = Mathf.approach(smoothProgress, 1f, Time.delta / chargeTime * effMultiplier);
+			    if (targets.size > 0 && canConsume()) {
+					    smoothProgress = Mathf.approach(smoothProgress, 1f, Time.delta / chargeTime * effMultiplier);
 
-						    if (efficiency > 0 && (charge += Time.delta * effMultiplier) >= reload && smoothProgress >= 0.99f) {
-								    shoot();
-								    charge = 0f;
-						    }
-				    } else {
-						    smoothProgress = Mathf.approach(smoothProgress, 0f, Time.delta / chargeTime * effMultiplier);
-				    }
+					    if (efficiency > 0 && (charge += Time.delta * effMultiplier) >= reload && smoothProgress >= 0.99f) {
+							    shoot();
+							    charge = 0f;
+					    }
+			    } else {
+					    smoothProgress = Mathf.approach(smoothProgress, 0f, Time.delta / chargeTime * effMultiplier);
+			    }
 		    }
 
 	      @Override
@@ -212,7 +196,7 @@ public class BlastTower extends Block {
 		        write.f(lastShootTime);
 		        write.f(smoothProgress);
 		        write.f(charge);
-		        pressure.write(write);
+              AutoImplement.Util.Inject(HasPressureImpl.class);
 	      }
     }
 }

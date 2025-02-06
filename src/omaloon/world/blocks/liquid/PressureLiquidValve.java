@@ -18,6 +18,7 @@ import mindustry.world.*;
 import omaloon.content.*;
 import omaloon.math.*;
 import omaloon.utils.*;
+import omaloon.struct.*;
 import omaloon.world.interfaces.*;
 import omaloon.world.meta.*;
 import omaloon.world.modules.*;
@@ -55,26 +56,27 @@ public class PressureLiquidValve extends Block {
 		destructible = true;
 	}
 
-	@Override
-	public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list) {
-		var tiling = new Object() {
-			int tiling = 0;
-		};
-		Point2
-			front = new Point2(1, 0).rotate(plan.rotation).add(plan.x, plan.y),
-			back = new Point2(-1, 0).rotate(plan.rotation).add(plan.x, plan.y);
+    @Override
+    public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list) {
+        var tiling = IntRef.tmp1.zero();
 
-		boolean inverted = plan.rotation == 1 || plan.rotation == 2;
-		list.each(next -> {
-			if (new Point2(next.x, next.y).equals(front) && next.block.outputsLiquid) tiling.tiling |= inverted ? 2 : 1;
-			if (new Point2(next.x, next.y).equals(back) && next.block.outputsLiquid) tiling.tiling |= inverted ? 1 : 2;
-		});
+        int dx = Geometry.d4x(plan.rotation),dy = Geometry.d4y(plan.rotation);
+        var front = Point2.pack(plan.x + dx, plan.y + dy);
+        var back = Point2.pack(plan.x - dx, plan.y - dy);
 
-		Draw.rect(bottomRegion, plan.drawx(), plan.drawy(), 0);
-		Draw.rect(tiles[tiling.tiling], plan.drawx(), plan.drawy(), (plan.rotation + 1) * 90f % 180 - 90);
-		Draw.rect(valveRegion, plan.drawx(), plan.drawy(), (plan.rotation + 1) * 90f % 180 - 90);
-		Draw.rect(topRegion, plan.drawx(), plan.drawy());
-	}
+        boolean inverted = plan.rotation == 1 || plan.rotation == 2;
+        list.each(next -> {
+            var nextPoint = Point2.pack(next.x, next.y);
+            if(!next.block.outputsLiquid)return;
+            if (nextPoint == front) tiling.value |= inverted ? 0b10 : 1;
+            if (nextPoint == back) tiling.value |= inverted ? 1 : 0b10;
+        });
+
+        Draw.rect(bottomRegion, plan.drawx(), plan.drawy(), 0);
+        Draw.rect(tiles[tiling.value], plan.drawx(), plan.drawy(), (plan.rotation + 1) * 90f % 180 - 90);
+        Draw.rect(valveRegion, plan.drawx(), plan.drawy(), (plan.rotation + 1) * 90f % 180 - 90);
+        Draw.rect(topRegion, plan.drawx(), plan.drawy());
+    }
 
 	@Override
 	public TextureRegion[] icons() {
@@ -96,42 +98,41 @@ public class PressureLiquidValve extends Block {
 		topRegion = Core.atlas.find(name + "-top");
 		bottomRegion = Core.atlas.find(name + "-bottom", "omaloon-liquid-bottom");
 
-		liquidRegions = new TextureRegion[2][animationFrames];
-		if(renderer != null){
-			var frames = renderer.getFluidFrames();
+        liquidRegions = new TextureRegion[2][animationFrames];
+        if (renderer != null) {
+            var frames = renderer.getFluidFrames();
 
-			for (int fluid = 0; fluid < 2; fluid++) {
-				for (int frame = 0; frame < animationFrames; frame++) {
-					TextureRegion base = frames[fluid][frame];
-					TextureRegion result = new TextureRegion();
-					result.set(base);
+            for (int fluid = 0; fluid < 2; fluid++) {
+                for (int frame = 0; frame < animationFrames; frame++) {
+                    TextureRegion base = frames[fluid][frame];
+                    TextureRegion result = new TextureRegion();
+                    result.set(base);
 
-					result.setHeight(result.height - liquidPadding);
-					result.setWidth(result.width - liquidPadding);
-					result.setX(result.getX() + liquidPadding);
-					result.setY(result.getY() + liquidPadding);
+                    result.setHeight(result.height - liquidPadding);
+                    result.setWidth(result.width - liquidPadding);
+                    result.setX(result.getX() + liquidPadding);
+                    result.setY(result.getY() + liquidPadding);
 
-					liquidRegions[fluid][frame] = result;
-				}
-			}
-		}
-	}
+                    liquidRegions[fluid][frame] = result;
+                }
+            }
+        }
+    }
 
-	@Override
-	public void setBars() {
-		super.setBars();
-		pressureConfig.addBars(this);
-	}
+    @Override
+    public void setBars() {
+        super.setBars();
+        pressureConfig.addBars(this);
+    }
 
-	@Override
-	public void setStats() {
-		super.setStats();
-		pressureConfig.addStats(stats);
-		stats.add(OlStats.pressureFlow, Mathf.round(pressureLoss * 60f, 2), OlStats.pressureSecond);
-	}
+    @Override
+    public void setStats() {
+        super.setStats();
+        pressureConfig.addStats(stats);
+        stats.add(OlStats.pressureFlow, Mathf.round(pressureLoss * 60f, 2), OlStats.pressureSecond);
+    }
 
-	public class PressureLiquidValveBuild extends Building implements HasPressure {
-		PressureModule pressure = new PressureModule();
+    public class PressureLiquidValveBuild extends Building implements HasPressureImpl {
 
 		public float draining;
 		public float effectInterval;
@@ -142,12 +143,12 @@ public class PressureLiquidValve extends Block {
 
 		@Override
 		public boolean acceptsPressurizedFluid(HasPressure from, @Nullable Liquid liquid, float amount) {
-			return HasPressure.super.acceptsPressurizedFluid(from, liquid, amount) && (liquid == pressure.getMain() || liquid == null || pressure.getMain() == null || from.pressure().getMain() == null);
+			return HasPressureImpl.super.acceptsPressurizedFluid(from, liquid, amount) && (liquid == pressure.getMain() || liquid == null || pressure.getMain() == null || from.pressure().getMain() == null);
 		}
 
 		@Override
 		public boolean connects(HasPressure to) {
-			return HasPressure.super.connects(to) && to instanceof PressureLiquidValveBuild ?
+			return HasPressureImpl.super.connects(to) && to instanceof PressureLiquidValveBuild ?
 				       (front() == to || back() == to) && (to.front() == this || to.back() == this) :
 				       (front() == to || back() == to);
 		}
@@ -182,26 +183,16 @@ public class PressureLiquidValve extends Block {
 			boolean inverted = rotation == 1 || rotation == 2;
 			if (front() instanceof HasPressure front && connected(front)) tiling |= inverted ? 2 : 1;
 			if (back() instanceof HasPressure back && connected(back)) tiling |= inverted ? 1 : 2;
-
-			new PressureSection().mergeFlood(this);
 		}
 
 		@Override
 		public boolean outputsPressurizedFluid(HasPressure to, Liquid liquid, float amount) {
-			return HasPressure.super.outputsPressurizedFluid(to, liquid, amount) && (liquid == to.pressure().getMain() || liquid == null || pressure.getMain() == null || to.pressure().getMain() == null);
-		}
-
-		@Override public PressureModule pressure() {
-			return pressure;
-		}
-		@Override public PressureConfig pressureConfig() {
-			return pressureConfig;
+			return HasPressureImpl.super.outputsPressurizedFluid(to, liquid, amount) && (liquid == to.pressure().getMain() || liquid == null || pressure.getMain() == null || to.pressure().getMain() == null);
 		}
 
 		@Override
 		public void read(Reads read, byte revision) {
 			super.read(read, revision);
-			pressure.read(read);
 			jammed = read.bool();
 			draining = read.f();
 			smoothAlpha = read.f();
@@ -209,7 +200,7 @@ public class PressureLiquidValve extends Block {
 
 		@Override
 		public void updatePressure() {
-			HasPressure.super.updatePressure();
+			HasPressureImpl.super.updatePressure();
 
 			float pressureAmount = pressure.getPressure(pressure.getMain());
 
@@ -259,15 +250,10 @@ public class PressureLiquidValve extends Block {
 				jamSound.at(x, y);
 			}
 		}
-		@Override
-		public void updateTile() {
-			updatePressure();
-		}
 
 		@Override
 		public void write(Writes write) {
 			super.write(write);
-			pressure.write(write);
 			write.bool(jammed);
 			write.f(draining);
 			write.f(smoothAlpha);

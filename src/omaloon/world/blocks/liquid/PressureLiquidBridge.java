@@ -18,6 +18,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.liquid.*;
 import mindustry.world.blocks.sandbox.*;
 import mindustry.world.meta.*;
+import omaloon.annotations.AutoImplement;
 import omaloon.annotations.Load;
 import omaloon.world.blocks.distribution.*;
 import omaloon.world.interfaces.*;
@@ -159,14 +160,14 @@ public class PressureLiquidBridge extends TubeItemBridge {
 		pressureConfig.addStats(stats);
 	}
 
-	public class PressureLiquidBridgeBuild extends TubeItemBridgeBuild implements HasPressure {
-		PressureModule pressure = new PressureModule();
+	public class PressureLiquidBridgeBuild extends TubeItemBridgeBuild implements HasPressureImpl {
+
 
 		public float smoothAlpha;
 
 		@Override
 		public boolean acceptsPressurizedFluid(HasPressure from, @Nullable Liquid liquid, float amount) {
-			return HasPressure.super.acceptsPressurizedFluid(from, liquid, amount) && (liquid == pressure.getMain() || liquid == null || pressure.getMain() == null || from.pressure().getMain() == null);
+			return HasPressureImpl.super.acceptsPressurizedFluid(from, liquid, amount) && (liquid == pressure.getMain() || liquid == null || pressure.getMain() == null || from.pressure().getMain() == null);
 		}
 
 		@Override
@@ -214,39 +215,25 @@ public class PressureLiquidBridge extends TubeItemBridge {
 
 		@Override
 		public Seq<HasPressure> nextBuilds() {
-			Seq<HasPressure> o = HasPressure.super.nextBuilds();
+			Seq<HasPressure> o = HasPressureImpl.super.nextBuilds();
 			if (Vars.world.build(link) instanceof PressureLiquidBridgeBuild b) o.add(b);
 			for(int pos : incoming.items) if (Vars.world.build(pos) instanceof PressureLiquidBridgeBuild b) o.add(b);
 			return o;
 		}
 
 		@Override
-		public void onProximityUpdate() {
-			super.onProximityUpdate();
-
-			new PressureSection().mergeFlood(this);
-		}
-
-		@Override
 		public boolean outputsPressurizedFluid(HasPressure to, Liquid liquid, float amount) {
-			return HasPressure.super.outputsPressurizedFluid(to, liquid, amount) && (liquid == to.pressure().getMain() || liquid == null || pressure.getMain() == null || to.pressure().getMain() == null);
-		}
-
-		@Override public PressureModule pressure() {
-			return pressure;
-		}
-		@Override public PressureConfig pressureConfig() {
-			return pressureConfig;
+			return HasPressureImpl.super.outputsPressurizedFluid(to, liquid, amount) && (liquid == to.pressure().getMain() || liquid == null || pressure.getMain() == null || to.pressure().getMain() == null);
 		}
 
 		@Override
 		public void read(Reads read, byte revision) {
 			super.read(read, revision);
-			pressure.read(read);
 			smoothAlpha = read.f();
 		}
 
 		@Override
+        @AutoImplement.NoInject(HasPressureImpl.class)
 		public void updateTile() {
 			incoming.size = Math.min(incoming.size, maxConnections - (link == -1 ? 0 : 1));
 			incoming.shrink();
@@ -301,7 +288,6 @@ public class PressureLiquidBridge extends TubeItemBridge {
 		@Override
 		public void write(Writes write) {
 			super.write(write);
-			pressure.write(write);
 			write.f(smoothAlpha);
 		}
 	}

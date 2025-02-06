@@ -12,6 +12,7 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.world.*;
+import omaloon.struct.IntRef;
 import omaloon.ui.elements.*;
 import omaloon.world.interfaces.*;
 import omaloon.world.meta.*;
@@ -40,21 +41,22 @@ public class PressureLiquidGauge extends Block {
 
 	@Override
 	public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list) {
-		var tiling = new Object() {
-			int tiling = 0;
-		};
-		Point2
-			front = new Point2(1, 0).rotate(plan.rotation).add(plan.x, plan.y),
-			back = new Point2(-1, 0).rotate(plan.rotation).add(plan.x, plan.y);
+		var tiling = IntRef.tmp1.zero();
+
+		int dx = Geometry.d4x(plan.rotation),dy = Geometry.d4y(plan.rotation);
+		var front = Point2.pack(plan.x + dx, plan.y + dy);
+		var back = Point2.pack(plan.x - dx, plan.y - dy);
 
 		boolean inverted = plan.rotation == 1 || plan.rotation == 2;
 		list.each(next -> {
-			if (new Point2(next.x, next.y).equals(front) && next.block.outputsLiquid) tiling.tiling |= inverted ? 2 : 1;
-			if (new Point2(next.x, next.y).equals(back) && next.block.outputsLiquid) tiling.tiling |= inverted ? 1 : 2;
+			var nextPoint = Point2.pack(next.x, next.y);
+			if(!next.block.outputsLiquid)return;
+			if (nextPoint == front) tiling.value |= inverted ? 0b10 : 1;
+			if (nextPoint == back) tiling.value |= inverted ? 1 : 0b10;
 		});
 
 		Draw.rect(bottomRegion, plan.drawx(), plan.drawy());
-		Draw.rect(tileRegions[tiling.tiling], plan.drawx(), plan.drawy(), (plan.rotation + 1) * 90f % 180 - 90);
+		Draw.rect(tileRegions[tiling.value], plan.drawx(), plan.drawy(), (plan.rotation + 1) * 90f % 180 - 90);
 		Draw.rect(gaugeRegion, plan.drawx(), plan.drawy(), plan.rotation * 90f);
 	}
 
@@ -119,20 +121,19 @@ public class PressureLiquidGauge extends Block {
 		pressureConfig.addStats(stats);
 	}
 
-	public class PressureLiquidGaugeBuild extends Building implements HasPressure {
-		PressureModule pressure = new PressureModule();
+	public class PressureLiquidGaugeBuild extends Building implements HasPressureImpl {
 
 		public int tiling;
 		public float smoothAlpha;
 
 		@Override
 		public boolean acceptsPressurizedFluid(HasPressure from, @Nullable Liquid liquid, float amount) {
-			return HasPressure.super.acceptsPressurizedFluid(from, liquid, amount) && (liquid == pressure.getMain() || liquid == null || pressure.getMain() == null || from.pressure().getMain() == null);
+			return HasPressureImpl.super.acceptsPressurizedFluid(from, liquid, amount) && (liquid == pressure.getMain() || liquid == null || pressure.getMain() == null || from.pressure().getMain() == null);
 		}
 
 		@Override
 		public boolean connects(HasPressure to) {
-			return HasPressure.super.connects(to) && to instanceof PressureLiquidValve.PressureLiquidValveBuild ?
+			return HasPressureImpl.super.connects(to) && to instanceof PressureLiquidValve.PressureLiquidValveBuild ?
 				       (front() == to || back() == to) && (to.front() == this || to.back() == this) :
 				       (front() == to || back() == to);
 		}
@@ -180,38 +181,21 @@ public class PressureLiquidGauge extends Block {
 			boolean inverted = rotation == 1 || rotation == 2;
 			if (front() instanceof HasPressure front && connected(front)) tiling |= inverted ? 2 : 1;
 			if (back() instanceof HasPressure back && connected(back)) tiling |= inverted ? 1 : 2;
-
-			new PressureSection().mergeFlood(this);
 		}
 
 		@Override
 		public boolean outputsPressurizedFluid(HasPressure to, Liquid liquid, float amount) {
-			return HasPressure.super.outputsPressurizedFluid(to, liquid, amount) && (liquid == to.pressure().getMain() || liquid == null || pressure.getMain() == null || to.pressure().getMain() == null);
+			return HasPressureImpl.super.outputsPressurizedFluid(to, liquid, amount) && (liquid == to.pressure().getMain() || liquid == null || pressure.getMain() == null || to.pressure().getMain() == null);
 		}
-
-		@Override public PressureModule pressure() {
-			return pressure;
-		}
-		@Override public PressureConfig pressureConfig() {
-			return pressureConfig;
-		}
-
 		@Override
 		public void read(Reads read, byte revision) {
 			super.read(read, revision);
-			pressure.read(read);
 			smoothAlpha = read.f();
-		}
-
-		@Override
-		public void updateTile() {
-			updatePressure();
 		}
 
 		@Override
 		public void write(Writes write) {
 			super.write(write);
-			pressure.write(write);
 			write.f(smoothAlpha);
 		}
 	}

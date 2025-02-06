@@ -10,11 +10,17 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import arc.util.io.*;
+import asmlib.annotations.DebugAST;
 import mindustry.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.ui.*;
+import mindustry.world.*;
+import mindustry.world.blocks.liquid.*;
+import omaloon.annotations.AutoImplement;
+import omaloon.content.*;
+import omaloon.ui.elements.*;
 import mindustry.world.*;
 import mindustry.world.blocks.liquid.*;
 import omaloon.content.*;
@@ -89,15 +95,14 @@ public class PressureLiquidSource extends Block {
 		});
 	}
 
-	public class PressureLiquidSourceBuild extends Building implements HasPressure {
-		PressureModule pressure = new PressureModule();
+	public class PressureLiquidSourceBuild extends Building implements HasPressureImpl {
 
 		public int liquid = -1;
 		public float targetAmount;
 
 		@Override
 		public boolean acceptsPressurizedFluid(HasPressure from, Liquid liquid, float amount) {
-			return HasPressure.super.acceptsPressurizedFluid(from, liquid, amount) && liquid == Vars.content.liquid(this.liquid);
+			return HasPressureImpl.super.acceptsPressurizedFluid(from, liquid, amount) && liquid == Vars.content.liquid(this.liquid);
 		}
 
 		@Override
@@ -158,34 +163,20 @@ public class PressureLiquidSource extends Block {
 		}
 
 		@Override
-		public void onProximityUpdate() {
-			super.onProximityUpdate();
-
-			new PressureSection().mergeFlood(this);
-		}
-
-		@Override
 		public boolean outputsPressurizedFluid(HasPressure to, Liquid liquid, float amount) {
-			return HasPressure.super.outputsPressurizedFluid(to, liquid, amount) && liquid == Vars.content.liquid(this.liquid);
-		}
-
-		@Override public PressureModule pressure() {
-			return pressure;
-		}
-		@Override public PressureConfig pressureConfig() {
-			return pressureConfig;
+			return HasPressureImpl.super.outputsPressurizedFluid(to, liquid, amount) && liquid == Vars.content.liquid(this.liquid);
 		}
 
 		@Override
 		public void read(Reads read, byte revision) {
 			super.read(read, revision);
-			pressure.read(read);
 			liquid = read.i();
 			if (Vars.content.liquid(liquid) == null) liquid = -1;
 			targetAmount = read.f();
 		}
 
 		@Override
+		@AutoImplement.NoInject(HasPressureImpl.class)
 		public void updateTile() {
 			pressure.section.updateTransfer();
 
@@ -200,11 +191,11 @@ public class PressureLiquidSource extends Block {
 		@Override
 		public void write(Writes write) {
 			super.write(write);
-			pressure.write(write);
 			write.i(liquid);
 			write.f(targetAmount);
 		}
 	}
+
 
 	public static class SourceEntry {
 		public @Nullable Liquid fluid;

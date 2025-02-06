@@ -19,8 +19,7 @@ public class PressureLiquidJunction extends Block {
 		destructible = true;
 	}
 
-	public class PressureLiquidJunctionBuild extends Building implements HasPressure {
-		PressureModule pressure = new PressureModule();
+	public class PressureLiquidJunctionBuild extends Building implements HasPressureImpl {
 
 		@Override public boolean acceptsPressurizedFluid(HasPressure from, @Nullable Liquid liquid, float amount) {
 			return false;
@@ -28,7 +27,7 @@ public class PressureLiquidJunction extends Block {
 
 		@Override
 		public boolean connects(HasPressure to) {
-			return HasPressure.super.connects(to) && !(to instanceof PressureLiquidPump);
+			return HasPressureImpl.super.connects(to) && !(to instanceof PressureLiquidPump);
 		}
 
 		@Override
@@ -52,33 +51,8 @@ public class PressureLiquidJunction extends Block {
 			return Seq.with();
 		}
 
-		@Override
-		public void onProximityUpdate() {
-			super.onProximityUpdate();
-
-			new PressureSection().mergeFlood(this);
-		}
-
 		@Override public boolean outputsPressurizedFluid(HasPressure to, @Nullable Liquid liquid, float amount) {
 			return false;
-		}
-
-		@Override public PressureModule pressure() {
-			return pressure;
-		}
-		@Override public PressureConfig pressureConfig() {
-			return pressureConfig;
-		}
-
-		@Override
-		public void read(Reads read, byte revision) {
-			super.read(read, revision);
-			pressure.read(read);
-		}
-		@Override
-		public void write(Writes write) {
-			super.write(write);
-			pressure.write(write);
 		}
 	}
 }
