@@ -61,6 +61,7 @@ public class UtilityDroneAI extends DroneAI {
 
         Queue<BuildPlan> plans = owner.plans;
         if (plans.isEmpty()) return false;
+        if (!owner.updateBuilding) return false;
 
         CoreBlock.CoreBuild core = unit.team.core();
 
@@ -71,7 +72,7 @@ public class UtilityDroneAI extends DroneAI {
             BuildPlan buildPlan = plans.first();
 
             if (!unit.shouldSkip(buildPlan, core) && owner.within(buildPlan, owner.type.buildRange)) {
-                moveTo(buildPlan.tile(), unit.type.buildRange * buildRangeScl, 30f);
+//                moveTo(buildPlan.tile(), unit.type.buildRange * buildRangeScl, 30f);
                 break;
             }
             plans.removeFirst();
@@ -80,7 +81,11 @@ public class UtilityDroneAI extends DroneAI {
         }
         if (totalSkipped == plans.size && !(owner.buildPlan().tile().build instanceof ConstructBlock.ConstructBuild))
             return false;
-        if (!owner.updateBuilding) return false;
+
+        moveTo(plans.first().tile(), unit.type.buildRange * buildRangeScl, 30f);
+        if(!unit.within(plans.first(),unit.type.buildRange)){
+            return true;
+        }
         /*if(!Vars.headless && owner== Vars.player.unit()){
 
         }*/
