@@ -220,11 +220,11 @@ public class PressureLiquidBridge extends TubeItemBridge {
 			return o;
 		}
 
-
 		@Override
 		public boolean outputsPressurizedFluid(HasPressure to, Liquid liquid, float amount) {
 			return HasPressureImpl.super.outputsPressurizedFluid(to, liquid, amount) && (liquid == to.pressure().getMain() || liquid == null || pressure.getMain() == null || to.pressure().getMain() == null);
 		}
+
 		@Override
 		public void read(Reads read, byte revision) {
 			super.read(read, revision);
@@ -239,6 +239,7 @@ public class PressureLiquidBridge extends TubeItemBridge {
 			checkIncoming();
 
 			updatePressure();
+            BUG_NEED_TO_INJECT//I'll fix this after merge
 
 			Tile other = world.tile(link);
 			if(linkValid(tile, other)) {

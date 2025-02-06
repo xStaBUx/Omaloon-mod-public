@@ -32,7 +32,7 @@ import omaloon.world.modules.*;
 
 import static mindustry.Vars.*;
 import static mindustry.type.Liquid.*;
-@DebugAST
+
 public class PressureLiquidPump extends Block {
 	public PressureConfig pressureConfig = new PressureConfig();
 
@@ -171,7 +171,7 @@ public class PressureLiquidPump extends Block {
 		}
 
 		@Override public boolean connects(HasPressure to) {
-			return HasPressureImpl.super.connects(to) && (front() == to || back() == to) && (!(to instanceof PressureLiquidPumpBuild) || to.rotation() == rotation);
+			return HasPressure.super.connects(to) && (front() == to || back() == to) && (!(to instanceof PressureLiquidPumpBuild) || to.rotation() == rotation);
 		}
 
 		@Override
@@ -268,13 +268,12 @@ public class PressureLiquidPump extends Block {
 			tiling = 0;
 			boolean inverted = rotation == 1 || rotation == 2;
 			if (front() instanceof HasPressure front && connected(front)) tiling |= inverted ? 2 : 1;
-			if (back() instanceof HasPressure back && connected(back)) tiling |= inverted ? 1 : 2;
+			if (back() instanceof HasPressure back && connected(back)) tiling |= inverted ? 1 : 2;;
 		}
 
 		@Override public boolean outputsPressurizedFluid(HasPressure to, @Nullable Liquid liquid, float amount) {
 			return false;
 		}
-
 
 		@Override
 		public void read(Reads read, byte revision) {

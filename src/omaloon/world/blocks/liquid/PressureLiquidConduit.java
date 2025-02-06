@@ -196,17 +196,16 @@ public class PressureLiquidConduit extends Block {
 		public boolean outputsPressurizedFluid(HasPressure to, Liquid liquid, float amount) {
 			return HasPressureImpl.super.outputsPressurizedFluid(to, liquid, amount) && (liquid == to.pressure().getMain() || liquid == null || pressure.getMain() == null || to.pressure().getMain() == null);
 		}
+        @Override
+        public void read(Reads read, byte revision) {
+            super.read(read, revision);
+            smoothAlpha = read.f();
+        }
 
-		@Override
-		public void read(Reads read, byte revision) {
-			super.read(read, revision);
-			smoothAlpha = read.f();
-		}
-
-		@Override
-		public void write(Writes write) {
-			super.write(write);
-			write.f(smoothAlpha);
-		}
+        @Override
+        public void write(Writes write) {
+            super.write(write);
+            write.f(smoothAlpha);
+        }
 	}
 }

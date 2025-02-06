@@ -21,6 +21,10 @@ import mindustry.world.blocks.liquid.*;
 import omaloon.annotations.AutoImplement;
 import omaloon.content.*;
 import omaloon.ui.elements.*;
+import mindustry.world.*;
+import mindustry.world.blocks.liquid.*;
+import omaloon.content.*;
+import omaloon.ui.elements.*;
 import omaloon.world.interfaces.*;
 import omaloon.world.meta.*;
 import omaloon.world.modules.*;
@@ -98,7 +102,7 @@ public class PressureLiquidSource extends Block {
 
 		@Override
 		public boolean acceptsPressurizedFluid(HasPressure from, Liquid liquid, float amount) {
-			return HasPressureImpl.super.acceptsPressurizedFluid(from, liquid, amount) && liquid == Vars.content.liquid(this.liquid);
+			return HasPressure.super.acceptsPressurizedFluid(from, liquid, amount) && liquid == Vars.content.liquid(this.liquid);
 		}
 
 		@Override
@@ -158,11 +162,11 @@ public class PressureLiquidSource extends Block {
 			Draw.rect(region, x, y);
 		}
 
-
 		@Override
 		public boolean outputsPressurizedFluid(HasPressure to, Liquid liquid, float amount) {
-			return HasPressureImpl.super.outputsPressurizedFluid(to, liquid, amount) && liquid == Vars.content.liquid(this.liquid);
+			return HasPressure.super.outputsPressurizedFluid(to, liquid, amount) && liquid == Vars.content.liquid(this.liquid);
 		}
+
 		@Override
 		public void read(Reads read, byte revision) {
 			super.read(read, revision);

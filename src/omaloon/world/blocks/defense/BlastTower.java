@@ -188,6 +188,37 @@ public class BlastTower extends Block {
 						    smoothProgress = Mathf.approach(smoothProgress, 0f, Time.delta / chargeTime * effMultiplier);
 				    }
 		    }
+		    @Override
+		    public void updateTile() {
+                AutoImplement.Util.Inject(HasPressureImpl.class);
+				    super.updateTile();
+
+				    targets.clear();
+				    Units.nearbyEnemies(team, x, y, range, u -> {
+						    if(u.checkTarget(targetAir, targetGround)) {
+							    targets.add(u);
+						    }
+				    });
+
+				    indexer.allBuildings(x, y, range, b -> {
+						    if(b.team != team){
+							    targets.add(b);
+						    }
+				    });
+
+				    float effMultiplier = efficiencyMultiplier();
+
+				    if (targets.size > 0 && canConsume()) {
+						    smoothProgress = Mathf.approach(smoothProgress, 1f, Time.delta / chargeTime * effMultiplier);
+
+						    if (efficiency > 0 && (charge += Time.delta * effMultiplier) >= reload && smoothProgress >= 0.99f) {
+								    shoot();
+								    charge = 0f;
+						    }
+				    } else {
+						    smoothProgress = Mathf.approach(smoothProgress, 0f, Time.delta / chargeTime * effMultiplier);
+				    }
+		    }
 
 	      @Override
 	      public void write(Writes write) {

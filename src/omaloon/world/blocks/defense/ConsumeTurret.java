@@ -80,16 +80,8 @@ public class ConsumeTurret extends Turret {
 			consume();
 		}
 
-		@Override
-		public void updateTile() {
-			updatePressure();
-			super.updateTile();
-		}
-
 		@Override public BulletType useAmmo() {
 			return shootType;
 		}
-
-
 	}
 }

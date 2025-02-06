@@ -102,11 +102,11 @@ public class PressureCrafter extends GenericCrafter {
 		@Override
 		public void updateTile() {
 			super.updateTile();
-			if(efficiency > 0) {
-				float inc = getProgressIncrease(1f);
-				if (outputPressurizedLiquids != null) for(var output : outputPressurizedLiquids) addFluid(output.liquid, output.amount * inc);
-				if (outputAir > 0) addFluid(null, outputAir * inc);
-			}
+            if(efficiency > 0) {
+                float inc = getProgressIncrease(1f);
+                if (outputPressurizedLiquids != null) for(var output : outputPressurizedLiquids) addFluid(output.liquid, output.amount * inc);
+                if (outputAir > 0) addFluid(null, outputAir * inc);
+            }
 		}
 	}
 }
