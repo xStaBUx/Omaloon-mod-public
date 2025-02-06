@@ -1,22 +1,26 @@
 package omaloon.world.blocks.distribution;
 
 import arc.graphics.g2d.*;
-import arc.math.Mathf;
-import arc.math.geom.Geometry;
+import arc.math.*;
+import arc.math.geom.*;
 import arc.util.*;
 import mindustry.entities.units.*;
-import mindustry.gen.Building;
+import mindustry.gen.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.draw.*;
+import omaloon.annotations.*;
 
-import static arc.Core.*;
-
-public class TubeJunction extends Junction {
+public class TubeJunction extends Junction{
     public DrawBlock drawer = new DrawDefault();
-    public TextureRegion side1, side2;
+    @Load("@-side1")
+    public TextureRegion side1;
+    @Load("@-side2")
+    public TextureRegion side2;
+    @Load("@-bottom")
+    protected TextureAtlas.AtlasRegion bottomRegion;
     protected int tempBlend = 0;
 
-    public TubeJunction(String name) {
+    public TubeJunction(String name){
         super(name);
     }
 
@@ -24,9 +28,6 @@ public class TubeJunction extends Junction {
     public void load(){
         super.load();
         drawer.load(this);
-        side1 = atlas.find(name + "-side1");
-        side2 = atlas.find(name + "-side2");
-        uiIcon = atlas.find(name + "-icon");
     }
 
     @Override
@@ -49,11 +50,12 @@ public class TubeJunction extends Junction {
 
         float x = plan.drawx(), y = plan.drawy();
 
-        Draw.rect(atlas.find(name + "-bottom"), x, y);
+
+        Draw.rect(bottomRegion, x, y);
         Draw.rect(region, x, y);
 
         //code duplication, awful
-        for(int i = 0; i < 4; i ++){
+        for(int i = 0; i < 4; i++){
             if((blending & (1 << i)) == 0){
                 Draw.rect(i >= 2 ? side2 : side1, x, y, i * 90);
 
@@ -72,20 +74,20 @@ public class TubeJunction extends Junction {
 
     public class TubeJunctionBuild extends JunctionBuild{
 
-        public Building buildAt(int i) {
+        public Building buildAt(int i){
             return nearby(i);
         }
 
-        public boolean valid(int i) {
+        public boolean valid(int i){
             Building b = buildAt(i);
             return b != null && b.block.acceptsItems;
         }
 
         @Override
-        public void draw() {
+        public void draw(){
             super.draw();
             drawer.draw(this);
-            for(int i = 0; i < 4; i++) {
+            for(int i = 0; i < 4; i++){
                 if(!valid(i)){
                     Draw.rect(i >= 2 ? side2 : side1, x, y, i * 90);
                 }

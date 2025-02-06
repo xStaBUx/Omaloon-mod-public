@@ -7,21 +7,21 @@ import omaloon.content.*;
 import omaloon.world.blocks.production.*;
 import omaloon.world.consumers.*;
 
-import static mindustry.type.ItemStack.*;
+import static mindustry.type.ItemStack.with;
 
-public class OlProductionBlocks {
+public class OlProductionBlocks{
     public static Block
-            hammerDrill,
+    hammerDrill,
 
     end;
 
     public static void load(){
         hammerDrill = new HammerDrill("hammer-drill"){{
             requirements(Category.production, with(
-              OlItems.cobalt, 10
+            OlItems.cobalt, 10
             ));
             researchCost = with(
-              OlItems.cobalt, 30
+            OlItems.cobalt, 30
             );
             drillTime = 920f;
             tier = 3;
@@ -31,8 +31,19 @@ public class OlProductionBlocks {
 
             pressureConfig.linkList.add(this);
 
-            consume(new ConsumePressure(-6, false));
-            consume(new PressureEfficiencyRange(-45f, -1f, 2f, true));
+            consume(new ConsumeFluid(null, -5f){{
+                startRange = -45f;
+                endRange = -0.01f;
+                efficiencyMultiplier = 2f;
+
+                optimalPressure = -40f;
+                hasOptimalPressure = true;
+
+                curve = t -> Math.min(
+                9f / 8f * (1f - t),
+                9f * t
+                );
+            }});
         }};
     }
 }

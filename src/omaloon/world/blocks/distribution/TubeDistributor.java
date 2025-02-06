@@ -11,34 +11,39 @@ import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.draw.*;
+import omaloon.annotations.*;
 
-import static arc.Core.*;
-import static mindustry.Vars.*;
-import static omaloon.utils.OlUtils.*;
+import static arc.Core.atlas;
+import static mindustry.Vars.itemSize;
+import static omaloon.utils.OlUtils.reverse;
 
-public class TubeDistributor extends Router {
+public class TubeDistributor extends Router{
     public DrawBlock drawer = new DrawDefault();
-    public TextureRegion rotorRegion, lockedRegion1, lockedRegion2;
+    @Load("@-rotator")
+    public TextureRegion rotorRegion;
+    @Load("@-locked-side1")
+    public TextureRegion lockedRegion1;
+    @Load("@-locked-side2")
+    public TextureRegion lockedRegion2;
+    @Load("@-bottom")
+    public TextureRegion bottomRegion;
 
-    public TubeDistributor(String name) {
+    public TubeDistributor(String name){
         super(name);
         rotate = true;
     }
 
     @Override
-    public void load() {
+    public void load(){
         super.load();
         drawer.load(this);
-        rotorRegion = atlas.find(name + "-rotator");
-        lockedRegion1 = atlas.find(name + "-locked-side1");
-        lockedRegion2 = atlas.find(name + "-locked-side2");
         uiIcon = atlas.find(name + "-icon");
     }
 
     @Override
     public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list){
         super.drawPlanRegion(plan, list);
-        Draw.rect(atlas.find(name + "-bottom"), plan.drawx(), plan.drawy());
+        Draw.rect(bottomRegion, plan.drawx(), plan.drawy());
         Draw.rect(rotorRegion, plan.drawx(), plan.drawy());
         Draw.rect(region, plan.drawx(), plan.drawy());
         Draw.rect(plan.rotation > 1 ? lockedRegion2 : lockedRegion1, plan.drawx(), plan.drawy(), plan.rotation * 90);
@@ -49,7 +54,7 @@ public class TubeDistributor extends Router {
         return new TextureRegion[]{atlas.find(name + "-icon")};
     }
 
-    public class TubeDistributorBuild extends RouterBuild {
+    public class TubeDistributorBuild extends RouterBuild{
         public Item lastItem;
         public Tile lastInput;
         public int lastTargetAngle, lastSourceAngle;
@@ -65,14 +70,14 @@ public class TubeDistributor extends Router {
             if(lastItem != null){
                 Building target = getTileTarget(lastItem, lastInput, false);
 
-                if(blockValidInDirection(targetAngle())) {
-                    if (target != null || time < 1f) {
+                if(blockValidInDirection(targetAngle())){
+                    if(target != null || time < 1f){
                         time += 1f / speed * delta();
-                        if (time > 1f) time = 1f;
+                        if(time > 1f) time = 1f;
                     }
                 }else if(time < 0.4f){
                     time += 0.4f / speed * delta();
-                    if (time > 0.4f) time = 0.4f;
+                    if(time > 0.4f) time = 0.4f;
                 }
 
                 if(target != null && time >= 1f){
@@ -88,27 +93,27 @@ public class TubeDistributor extends Router {
                     angle = computeAngle(sa, ta);
                 }
 
-                if (items.total() > 0 && !Vars.state.isPaused() && (!(time >= 1f) && (blockValidInDirection(targetAngle())))
-                        || (!blockValidInDirection(targetAngle()) && !(time >= 0.4f))) {
+                if(items.total() > 0 && !Vars.state.isPaused() && (!(time >= 1f) && (blockValidInDirection(targetAngle())))
+                || (!blockValidInDirection(targetAngle()) && !(time >= 0.4f))){
                     lastRot = rot;
                     rot += speed * angle * delta();
                 }
             }
         }
 
-        private float computeAngle(int sa, int ta) {
+        private float computeAngle(int sa, int ta){
             return (sa == 0) ? ((ta == 2) ? 1 : ((ta == 0 || ta == 3) ? -1 : 1)) :
-                    (sa == 2) ? ((ta == 0 || ta == 1) ? -1 : 1) :
-                            (sa == 1) ? ((ta == 0 || ta == 3) ? -1 : 1) :
-                                    ((ta == 0 || ta == 1) ? 1 : -1);
+            (sa == 2) ? ((ta == 0 || ta == 1) ? -1 : 1) :
+            (sa == 1) ? ((ta == 0 || ta == 3) ? -1 : 1) :
+            ((ta == 0 || ta == 1) ? 1 : -1);
         }
 
-        public boolean blockValidInDirection(int direction) {
+        public boolean blockValidInDirection(int direction){
             Tile targetTile = tile.nearby(direction);
             return targetTile != null && (targetTile.block().hasItems
-                    || targetTile.block() instanceof Junction
-                    || targetTile.block() instanceof TubeSorter
-                    || targetTile.block() instanceof OverflowGate
+            || targetTile.block() instanceof Junction
+            || targetTile.block() instanceof TubeSorter
+            || targetTile.block() instanceof OverflowGate
             );
         }
 
@@ -135,9 +140,9 @@ public class TubeDistributor extends Router {
             return result;
         }
 
-        public int sourceAngle() {
-            for(int sourceAngle = 0; sourceAngle < 4; sourceAngle++) {
-                if(nearby(sourceAngle) == lastInput.build) {
+        public int sourceAngle(){
+            for(int sourceAngle = 0; sourceAngle < 4; sourceAngle++){
+                if(nearby(sourceAngle) == lastInput.build){
                     lastSourceAngle = sourceAngle;
                     return sourceAngle;
                 }
@@ -145,12 +150,12 @@ public class TubeDistributor extends Router {
             return lastSourceAngle;
         }
 
-        public int targetAngle() {
-            if (lastItem == null) return lastTargetAngle;
+        public int targetAngle(){
+            if(lastItem == null) return lastTargetAngle;
             Building target = getTileTarget(lastItem, lastInput, false);
-            if(target != null) {
-                for (int targetAngle = 0; targetAngle < 4; targetAngle++) {
-                    if (nearby(targetAngle) == target) {
+            if(target != null){
+                for(int targetAngle = 0; targetAngle < 4; targetAngle++){
+                    if(nearby(targetAngle) == target){
                         lastTargetAngle = targetAngle;
                         return targetAngle;
                     }
@@ -159,38 +164,38 @@ public class TubeDistributor extends Router {
             return lastTargetAngle;
         }
 
-        public void drawItem() {
-            if (lastInput != null && lastInput.build != null && lastItem != null) {
+        public void drawItem(){
+            if(lastInput != null && lastInput.build != null && lastItem != null){
                 boolean isf = reverse(sourceAngle()) == targetAngle() || sourceAngle() == targetAngle();
                 boolean alignment = targetAngle() == 0 || targetAngle() == 2;
                 float ox, oy, s = size * 4, s2 = s * 2;
-                float linearMove = (float) Math.sin(Math.PI * time) / 2.4f * s;
+                float linearMove = (float)Math.sin(Math.PI * time) / 2.4f * s;
 
-                if (alignment) {
-                    if (isf) {
+                if(alignment){
+                    if(isf){
                         if(sourceAngle() == targetAngle()){
                             oy = time >= 0.5f ? linearMove : -linearMove;
                             ox = time >= 0.5f ? (time * s2 - s) * (targetAngle() == 0 ? 1 : -1)
-                                    : (time * s2 - s) * (targetAngle() == 0 ? -1 : 1);
-                        } else {
+                            : (time * s2 - s) * (targetAngle() == 0 ? -1 : 1);
+                        }else{
                             oy = linearMove;
                             ox = (time * s2 - s) * (targetAngle() == 0 ? 1 : -1);
                         }
-                    } else {
+                    }else{
                         oy = sourceAngle() == 1 ? (time * -s + s) : (time * s - s);
                         ox = time * s * (targetAngle() == 0 ? 1 : -1);
                     }
-                } else {
-                    if (isf) {
+                }else{
+                    if(isf){
                         if(sourceAngle() == targetAngle()){
                             ox = time >= 0.5f ? linearMove : -linearMove;
                             oy = time >= 0.5f ? (time * s2 - s) * (targetAngle() == 1 ? 1 : -1)
-                                    : (time * s2 - s) * (targetAngle() == 1 ? -1 : 1);
-                        } else {
-                            ox = (float) Math.sin(Math.PI * time) / 2.4f * s;
+                            : (time * s2 - s) * (targetAngle() == 1 ? -1 : 1);
+                        }else{
+                            ox = (float)Math.sin(Math.PI * time) / 2.4f * s;
                             oy = (time * s2 - s) * (targetAngle() == 1 ? 1 : -1);
                         }
-                    } else {
+                    }else{
                         ox = sourceAngle() == 0 ? (time * -s + s) : (time * s - s);
                         oy = time * s * (targetAngle() == 1 ? 1 : -1);
                     }
@@ -201,7 +206,7 @@ public class TubeDistributor extends Router {
         }
 
         @Override
-        public void draw() {
+        public void draw(){
             drawer.draw(this);
             Draw.z(Layer.block - 0.2f);
             drawItem();

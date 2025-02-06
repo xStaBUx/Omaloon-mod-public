@@ -16,15 +16,14 @@ import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
+import omaloon.annotations.*;
 import omaloon.content.*;
 import omaloon.world.interfaces.*;
 import omaloon.world.meta.*;
-import omaloon.world.modules.*;
 
-import static arc.Core.*;
 import static mindustry.Vars.*;
 
-public class BlastTower extends Block {
+public class BlastTower extends Block{
     public PressureConfig pressureConfig = new PressureConfig();
     public boolean useConsumerMultiplier = true;
     public float shake = 3f;
@@ -41,19 +40,13 @@ public class BlastTower extends Block {
     public Color waveColor = Color.white;
     public Effect waveEffect = Fx.dynamicWave;
     public Sound shootSound = OlSounds.hammer;
-
+    @Load("@-hammer")
     public TextureRegion hammerRegion;
 
     public BlastTower(String name){
         super(name);
         update = true;
         solid = true;
-    }
-
-    @Override
-    public void load(){
-        super.load();
-        hammerRegion = atlas.find(name + "-hammer");
     }
 
     @Override
@@ -69,13 +62,13 @@ public class BlastTower extends Block {
     }
 
     @Override
-    public void setBars() {
+    public void setBars(){
         super.setBars();
         pressureConfig.addBars(this);
     }
 
     @Override
-    public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list) {
+    public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list){
         super.drawPlanRegion(plan, list);
         Draw.rect(hammerRegion, plan.drawx(), plan.drawy());
     }
@@ -92,85 +85,23 @@ public class BlastTower extends Block {
         return new TextureRegion[]{region, hammerRegion};
     }
 
-    public class BlastTowerBuild extends Building implements HasPressure {
-        public PressureModule pressure = new PressureModule();
+    public class BlastTowerBuild extends Building implements HasPressureImpl{
         public float smoothProgress = 0f;
         public float charge;
         public float lastShootTime = -reload;
         public Seq<Teamc> targets = new Seq<>();
 
-        public float efficiencyMultiplier() {
+        public float efficiencyMultiplier(){
             float val = 1f;
-            if (!useConsumerMultiplier) return val;
-            for (Consume consumer : consumers) {
+            if(!useConsumerMultiplier) return val;
+            for(Consume consumer : consumers){
                 val *= consumer.efficiencyMultiplier(this);
             }
             return val;
         }
 
         @Override
-        public void updateTile() {
-            updatePressure();
-            dumpPressure();
-            super.updateTile();
-
-            targets.clear();
-            Units.nearbyEnemies(team, x, y, range, u -> {
-                if(u.checkTarget(targetAir, targetGround)) {
-                    targets.add(u);
-                }
-            });
-
-            indexer.allBuildings(x, y, range, b -> {
-                if(b.team != team){
-                    targets.add(b);
-                }
-            });
-
-            float effMultiplier = efficiencyMultiplier();
-
-            if (targets.size > 0 && canConsume()) {
-                smoothProgress = Mathf.approach(smoothProgress, 1f, Time.delta / chargeTime * effMultiplier);
-
-                if (efficiency > 0 && (charge += Time.delta * effMultiplier) >= reload && smoothProgress >= 0.99f) {
-                    shoot();
-                    charge = 0f;
-                }
-            } else {
-                smoothProgress = Mathf.approach(smoothProgress, 0f, Time.delta / chargeTime * effMultiplier);
-            }
-        }
-
-        public void shoot() {
-            if (!canConsume()) return;
-
-            consume();
-            lastShootTime = Time.time;
-            Effect.shake(shake, shake, this);
-            shootSound.at(this);
-            waveEffect.layer(Layer.blockUnder).at(x, y, range, waveColor);
-            tile.getLinkedTiles(t -> OlFx.hammerHit.layer(Layer.blockUnder).at(
-                    t.worldx(), t.worldy(),
-                    angleTo(t.worldx(), t.worldy()) + Mathf.range(360f),
-                    Tmp.c1.set(t.floor().mapColor).mul(1.5f + Mathf.range(0.15f)))
-            );
-
-            float damageMultiplier = efficiencyMultiplier();
-            for (Teamc target : targets) {
-                hitEffect.at(target.x(), target.y(), hitColor);
-                if(target instanceof Healthc){
-                    ((Healthc)target).damage(damage * damageMultiplier);
-                }
-                if(target instanceof Statusc){
-                    ((Statusc)target).apply(status, statusDuration);
-                }
-            }
-
-            smoothProgress = 0f;
-        }
-
-        @Override
-        public void draw() {
+        public void draw(){
             Draw.rect(region, x, y);
 
             float fract = Mathf.clamp(smoothProgress, 0.25f, 0.3f);
@@ -187,31 +118,82 @@ public class BlastTower extends Block {
         }
 
         @Override
-        public void write(Writes write) {
-            super.write(write);
-            write.f(lastShootTime);
-            write.f(smoothProgress);
-            write.f(charge);
-            pressure.write(write);
-        }
-
-        @Override
-        public void read(Reads read, byte revision) {
+        public void read(Reads read, byte revision){
             super.read(read, revision);
             lastShootTime = read.f();
             smoothProgress = read.f();
             charge = read.f();
-            pressure.read(read);
+            AutoImplement.Util.Inject(HasPressureImpl.class);
+        }
+
+        public void shoot(){
+            if(!canConsume()) return;
+
+            consume();
+            lastShootTime = Time.time;
+            Effect.shake(shake, shake, this);
+            shootSound.at(this);
+            waveEffect.layer(Layer.blockUnder).at(x, y, range, waveColor);
+            tile.getLinkedTiles(t -> OlFx.hammerHit.layer(Layer.blockUnder).at(
+            t.worldx(), t.worldy(),
+            angleTo(t.worldx(), t.worldy()) + Mathf.range(360f),
+            Tmp.c1.set(t.floor().mapColor).mul(1.5f + Mathf.range(0.15f)))
+            );
+
+            float damageMultiplier = efficiencyMultiplier();
+            for(Teamc target : targets){
+                hitEffect.at(target.x(), target.y(), hitColor);
+                if(target instanceof Healthc){
+                    ((Healthc)target).damage(damage * damageMultiplier);
+                }
+                if(target instanceof Statusc){
+                    ((Statusc)target).apply(status, statusDuration);
+                }
+            }
+
+            smoothProgress = 0f;
+        }
+
+
+        @Override
+        public void updateTile(){
+            AutoImplement.Util.Inject(HasPressureImpl.class);
+            super.updateTile();
+
+            targets.clear();
+            Units.nearbyEnemies(team, x, y, range, u -> {
+                if(u.checkTarget(targetAir, targetGround)){
+                    targets.add(u);
+                }
+            });
+
+            indexer.allBuildings(x, y, range, b -> {
+                if(b.team != team){
+                    targets.add(b);
+                }
+            });
+
+            float effMultiplier = efficiencyMultiplier();
+
+            if(targets.size > 0 && canConsume()){
+                smoothProgress = Mathf.approach(smoothProgress, 1f, Time.delta / chargeTime * effMultiplier);
+
+                if(efficiency > 0 && (charge += Time.delta * effMultiplier) >= reload && smoothProgress >= 0.99f){
+                    shoot();
+                    charge = 0f;
+                }
+            }else{
+                smoothProgress = Mathf.approach(smoothProgress, 0f, Time.delta / chargeTime * effMultiplier);
+            }
         }
 
         @Override
-        public PressureModule pressure() {
-            return pressure;
-        }
-
-        @Override
-        public PressureConfig pressureConfig() {
-            return pressureConfig;
+        public void write(Writes write){
+            super.write(write);
+            write.f(lastShootTime);
+            write.f(smoothProgress);
+            write.f(charge);
+            AutoImplement.Util.Inject(HasPressureImpl.class);
         }
     }
 }

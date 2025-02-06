@@ -1,77 +1,58 @@
 package omaloon.world.blocks.production;
 
-import arc.util.io.*;
 import mindustry.world.blocks.production.*;
 import mindustry.world.consumers.*;
 import omaloon.world.interfaces.*;
 import omaloon.world.meta.*;
-import omaloon.world.modules.*;
 
-public class PressureDrill extends Drill {
-	public PressureConfig pressureConfig = new PressureConfig();
+public class PressureDrill extends Drill{
+    public PressureConfig pressureConfig = new PressureConfig();
 
-	public boolean useConsumerMultiplier = true;
+    public boolean useConsumerMultiplier = true;
 
-	public PressureDrill(String name) {
-		super(name);
-		pressureConfig.isWhitelist = true;
-	}
+    public PressureDrill(String name){
+        super(name);
+        pressureConfig.isWhitelist = true;
+    }
 
-	@Override
-	public void setBars() {
-		super.setBars();
-		pressureConfig.addBars(this);
-	}
+    @Override
+    public void init(){
+        super.init();
 
-	@Override
-	public void setStats() {
-		super.setStats();
-		pressureConfig.addStats(stats);
-	}
+        if(pressureConfig.fluidGroup == null) pressureConfig.fluidGroup = FluidGroup.drills;
+    }
 
-	public class PressureDrillBuild extends DrillBuild implements HasPressure {
-		PressureModule pressure = new PressureModule();
+    @Override
+    public void setBars(){
+        super.setBars();
+        pressureConfig.addBars(this);
+    }
 
-		public float efficiencyMultiplier() {
-			float val = 1;
-			if (!useConsumerMultiplier) return val;
-			for (Consume consumer : consumers) {
-				val *= consumer.efficiencyMultiplier(this);
-			}
-			return val;
-		}
+    @Override
+    public void setStats(){
+        super.setStats();
+        pressureConfig.addStats(stats);
+    }
 
-		@Override public float efficiencyScale() {
-			return super.efficiencyScale() * efficiencyMultiplier();
-		}
+    public class PressureDrillBuild extends DrillBuild implements HasPressureImpl{
 
-		@Override public float getProgressIncrease(float baseTime) {
-			return super.getProgressIncrease(baseTime) * efficiencyMultiplier();
-		}
+        public float efficiencyMultiplier(){
+            float val = 1;
+            if(!useConsumerMultiplier) return val;
+            for(Consume consumer : consumers){
+                val *= consumer.efficiencyMultiplier(this);
+            }
+            return val;
+        }
 
-		@Override public PressureModule pressure() {
-			return pressure;
-		}
-		@Override public PressureConfig pressureConfig() {
-			return pressureConfig;
-		}
+        @Override
+        public float efficiencyScale(){
+            return super.efficiencyScale() * efficiencyMultiplier();
+        }
 
-		@Override
-		public void read(Reads read, byte revision) {
-			super.read(read, revision);
-			pressure.read(read);
-		}
-
-		@Override
-		public void updateTile() {
-			super.updateTile();
-			updatePressure();
-			dumpPressure();
-		}
-		@Override
-		public void write(Writes write) {
-			super.write(write);
-			pressure.write(write);
-		}
-	}
+        @Override
+        public float getProgressIncrease(float baseTime){
+            return super.getProgressIncrease(baseTime) * efficiencyMultiplier();
+        }
+    }
 }

@@ -22,9 +22,9 @@ import omaloon.entities.part.*;
 import omaloon.gen.*;
 import omaloon.type.*;
 
-import static arc.Core.*;
+import static arc.Core.atlas;
 
-public class OlUnitTypes {
+public class OlUnitTypes{
     // flying
     public static UnitType cilantro, basil, sage;
 
@@ -38,7 +38,7 @@ public class OlUnitTypes {
     public static @EntityDef({Unitc.class, Flyingc.class, Ornitopterc.class}) UnitType effort;
 
     // millipede
-    public static @EntityDef({Unitc.class, Millipedec.class, Legsc.class}) UnitType collector;
+    public static @EntityDef({Unitc.class, Chainedc.class}) UnitType collector;
 
     // core
     public static UnitType discovery;
@@ -47,74 +47,61 @@ public class OlUnitTypes {
 
     public static @EntityDef({Unitc.class, Dronec.class}) UnitType attackDroneAlpha, actionDroneMono;
 
-    public static void load() {
+    public static void load(){
         collector = new MillipedeUnitType("collector"){{
-            constructor = LegsMillipedeUnit::create;
+            constructor = ChainedUnit::create;
             aiController = MillipedeAI::new;
+
+            omniMovement = false;
+
             speed = 0.6f;
             health = 200f;
             regenTime = 15f * 60f;
-            chainable = true;
-            omniMovement = false;
-            angleLimit = 65f;
+
             segmentLength = 5;
+            maxSegments = 20;
+
+            splittable = true;
+
+            angleLimit = 65f;
             segmentDamageScl = 8f;
             segmentCast = 8;
             segmentOffset = 7.3f;
-            maxSegments = 20;
-            preventDrifting = true;
+
             hidden = true;
 
-            legLength = 8f;
-            lockLegBase = true;
-            legContinuousMove = true;
-            legExtension = -2f;
-            legBaseOffset = 3f;
-            legMaxLength = 1.1f;
-            legMinLength = 0.2f;
-            legLengthScl = 0.96f;
-            legForwardScl = 0.7f;
-            legGroupSize = 2;
-            rippleScale = 0.7f;
-            headLegCount = segmentLegCount = tailLegCount = 2;
-
-            legMoveSpace = 2f;
-            allowLegStep = true;
-            hovering = false;
-            legPhysicsLayer = true;
-
-            Seq<Weapon> weaponSeq = Seq.with(
-              new Weapon("omaloon-collector-beam") {{
-                  x = 0f;
-                  y = 1f;
-                  rotate = true;
-                  mirror = false;
-                  reload = 60f;
-                  bullet = new ArtilleryBulletType(5f, 7) {{
-                      maxRange = 40f;
-                      collidesTiles = collidesAir = collidesGround = true;
-                      width = height = 11f;
-                      splashDamage = 25f;
-                      splashDamageRadius = 25f;
-                      trailColor = hitColor = lightColor = backColor = Pal.thoriumPink;
-                      frontColor = Pal.thoriumPink;
-                  }};
-              }}
-            );
-            segmentWeapons = new Seq[] {
-              Seq.with(),
-              weaponSeq, weaponSeq, weaponSeq,
-              weaponSeq, weaponSeq, weaponSeq,
-              weaponSeq, weaponSeq, weaponSeq,
-              weaponSeq, weaponSeq, weaponSeq,
-              weaponSeq, weaponSeq, weaponSeq,
-              weaponSeq, weaponSeq, weaponSeq,
-              Seq.with()
+            weaponsIndex = unit -> {
+                if(unit instanceof Chainedc chain){
+                    if(chain.isHead() || chain.isTail()) return 0;
+                    return 1;
+                }
+                return 0;
             };
+            chainWeapons.add(
+            Seq.with(),
+            Seq.with(
+            new Weapon("omaloon-collector-beam"){{
+                x = 0f;
+                y = 1f;
+                rotate = true;
+                mirror = false;
+                reload = 60f;
+                bullet = new ArtilleryBulletType(5f, 7){{
+                    maxRange = 40f;
+                    collidesTiles = collidesAir = collidesGround = true;
+                    width = height = 11f;
+                    splashDamage = 25f;
+                    splashDamageRadius = 25f;
+                    trailColor = hitColor = lightColor = backColor = Pal.thoriumPink;
+                    frontColor = Pal.thoriumPink;
+                }};
+            }}
+            )
+            );
         }};
 
         //region core
-        attackDroneAlpha = new DroneUnitType("combat-drone-alpha") {{
+        attackDroneAlpha = new DroneUnitType("combat-drone-alpha"){{
             constructor = DroneUnit::create;
 
             itemCapacity = 0;
@@ -156,7 +143,7 @@ public class OlUnitTypes {
             shadowElevationScl = 0.4f;
         }};
 
-        actionDroneMono = new GlassmoreUnitType("main-drone-mono") {{
+        actionDroneMono = new GlassmoreUnitType("main-drone-mono"){{
             constructor = DroneUnit::create;
 
             mineTier = 3;
@@ -181,7 +168,7 @@ public class OlUnitTypes {
             shadowElevationScl = 0.4f;
         }};
 
-        walker = new GlassmoreUnitType("walker") {{
+        walker = new GlassmoreUnitType("walker"){{
             constructor = FloatMechCoreUnit::create;
             aiController = BuilderAI::new;
 
@@ -198,30 +185,32 @@ public class OlUnitTypes {
             mineTier = 3;
 
             abilities.addAll(
-                new DroneAbility() {{
-                    name = "omaloon-combat-drone";
-                    droneUnit = attackDroneAlpha;
-                    droneController = AttackDroneAI::new;
-                    spawnTime = 180f;
-                    spawnX = 5f; spawnY = 0f;
-                    spawnEffect = Fx.spawn;
-                    parentizeEffects = true;
-                    anchorPos = new Vec2[] {
-                        new Vec2(12f, 0f),
-                    };
-                }},
-                new DroneAbility() {{
-                    name = "omaloon-utility-drone";
-                    droneUnit = actionDroneMono;
-                    droneController = UtilityDroneAI::new;
-                    spawnTime = 180f;
-                    spawnX = -5f; spawnY = 0f;
-                    spawnEffect = Fx.spawn;
-                    parentizeEffects = true;
-                    anchorPos = new Vec2[] {
-                        new Vec2(-12f, 0f),
-                    };
-                }}
+            new DroneAbility(){{
+                name = "omaloon-combat-drone";
+                droneUnit = attackDroneAlpha;
+                droneController = AttackDroneAI::new;
+                spawnTime = 180f;
+                spawnX = 5f;
+                spawnY = 0f;
+                spawnEffect = Fx.spawn;
+                parentizeEffects = true;
+                anchorPos = new Vec2[]{
+                new Vec2(12f, 0f),
+                };
+            }},
+            new DroneAbility(){{
+                name = "omaloon-utility-drone";
+                droneUnit = actionDroneMono;
+                droneController = UtilityDroneAI::new;
+                spawnTime = 180f;
+                spawnX = -5f;
+                spawnY = 0f;
+                spawnEffect = Fx.spawn;
+                parentizeEffects = true;
+                anchorPos = new Vec2[]{
+                new Vec2(-12f, 0f),
+                };
+            }}
             );
 
             shadowElevationScl = 0.3f;
@@ -277,24 +266,26 @@ public class OlUnitTypes {
             parts.add(new RegionPart("-tusk"){{
                 layerOffset = -0.001f;
                 mirror = true;
-                x = 2.7f; y = 8.6f;
+                x = 2.7f;
+                y = 8.6f;
                 outline = true;
             }});
 
             abilities.add(
-                new JavelinAbility(20f, 5f, 29f) {{
-                    minDamage = 5f;
-                    minSpeed = 2;
-                    maxSpeed = 4;
-                    magX = 0.2f;
-                    magY = 0.1f;
-                }}
+            new JavelinAbility(20f, 5f, 29f){{
+                minDamage = 5f;
+                minSpeed = 2;
+                maxSpeed = 4;
+                magX = 0.2f;
+                magY = 0.1f;
+            }}
             );
 
             weapons.add(new Weapon(name + "-launcher"){{
                 layerOffset = 1f;
                 mirror = true;
-                x = 4.7f; y = 2f;
+                x = 4.7f;
+                y = 2f;
                 shootCone = 60f;
                 smoothReloadSpeed = 0.5f;
                 shootSound = Sounds.missile;
@@ -325,7 +316,7 @@ public class OlUnitTypes {
             hitSize = 16;
         }};
 
-        lumen = new GlassmoreUnitType("lumen") {{
+        lumen = new GlassmoreUnitType("lumen"){{
             constructor = UnitEntity::create;
 
             hitSize = 10f;
@@ -338,7 +329,7 @@ public class OlUnitTypes {
             range = 5f;
             health = 70;
 
-            weapons.add(new FilterWeapon() {{
+            weapons.add(new FilterWeapon(){{
                 mirror = false;
                 x = 0;
                 y = 4f;
@@ -352,75 +343,75 @@ public class OlUnitTypes {
                 shootCone = 20f;
 
                 bullets = new BulletType[]{
-                  new LiquidBulletType(OlLiquids.glacium){{
-                      recoil = 0.06f;
-                      killShooter = true;
+                new LiquidBulletType(OlLiquids.glacium){{
+                    recoil = 0.06f;
+                    killShooter = true;
 
-                      speed = 2.5f;
-                      drag = 0.009f;
-                      shootEffect = Fx.shootSmall;
-                      lifetime = 27f;
-                      collidesAir = false;
-                      status = OlStatusEffects.glacied;
-                      statusDuration = 60f * 5f;
+                    speed = 2.5f;
+                    drag = 0.009f;
+                    shootEffect = Fx.shootSmall;
+                    lifetime = 27f;
+                    collidesAir = false;
+                    status = OlStatusEffects.glacied;
+                    statusDuration = 60f * 5f;
 
-                      despawnSound = hitSound = Sounds.splash;
-                  }},
-                  new LiquidBulletType(Liquids.water){{
-                      recoil = 0.06f;
-                      killShooter = true;
+                    despawnSound = hitSound = Sounds.splash;
+                }},
+                new LiquidBulletType(Liquids.water){{
+                    recoil = 0.06f;
+                    killShooter = true;
 
-                      speed = 2.5f;
-                      drag = 0.009f;
-                      shootEffect = Fx.shootSmall;
-                      lifetime = 27f;
-                      collidesAir = false;
-                      status = StatusEffects.wet;
-                      statusDuration = 60f * 5f;
+                    speed = 2.5f;
+                    drag = 0.009f;
+                    shootEffect = Fx.shootSmall;
+                    lifetime = 27f;
+                    collidesAir = false;
+                    status = StatusEffects.wet;
+                    statusDuration = 60f * 5f;
 
-                      despawnSound = hitSound = Sounds.splash;
-                  }},
-                  new LiquidBulletType(Liquids.slag){{
-                      recoil = 0.06f;
-                      killShooter = true;
+                    despawnSound = hitSound = Sounds.splash;
+                }},
+                new LiquidBulletType(Liquids.slag){{
+                    recoil = 0.06f;
+                    killShooter = true;
 
-                      speed = 2.5f;
-                      drag = 0.009f;
-                      shootEffect = Fx.shootSmall;
-                      lifetime = 27f;
-                      collidesAir = false;
-                      status = StatusEffects.melting;
-                      statusDuration = 60f * 5f;
+                    speed = 2.5f;
+                    drag = 0.009f;
+                    shootEffect = Fx.shootSmall;
+                    lifetime = 27f;
+                    collidesAir = false;
+                    status = StatusEffects.melting;
+                    statusDuration = 60f * 5f;
 
-                      despawnSound = hitSound = Sounds.splash;
-                  }},
-                  new LiquidBulletType(Liquids.oil){{
-                      recoil = 0.06f;
-                      killShooter = true;
+                    despawnSound = hitSound = Sounds.splash;
+                }},
+                new LiquidBulletType(Liquids.oil){{
+                    recoil = 0.06f;
+                    killShooter = true;
 
-                      speed = 2.5f;
-                      drag = 0.009f;
-                      shootEffect = Fx.shootSmall;
-                      lifetime = 27f;
-                      collidesAir = false;
-                      status = StatusEffects.tarred;
-                      statusDuration = 60f * 5f;
+                    speed = 2.5f;
+                    drag = 0.009f;
+                    shootEffect = Fx.shootSmall;
+                    lifetime = 27f;
+                    collidesAir = false;
+                    status = StatusEffects.tarred;
+                    statusDuration = 60f * 5f;
 
-                      despawnSound = hitSound = Sounds.splash;
-                  }}
+                    despawnSound = hitSound = Sounds.splash;
+                }}
                 };
-				icons = new String[] {
-                        "omaloon-filled-with-glacium",
-                        "omaloon-filled-with-water",
-                        "omaloon-filled-with-slag",
-                        "omaloon-filled-with-oil"
-				};
+                icons = new String[]{
+                "omaloon-filled-with-glacium",
+                "omaloon-filled-with-water",
+                "omaloon-filled-with-slag",
+                "omaloon-filled-with-oil"
+                };
                 bulletFilter = unit -> {
-                    if (unit.hasEffect(OlStatusEffects.filledWithGlacium)) return bullets[0];
-                    if (unit.hasEffect(OlStatusEffects.filledWithWater)) return bullets[1];
-                    if (unit.hasEffect(OlStatusEffects.filledWithSlag)) return bullets[2];
-                    if (unit.hasEffect(OlStatusEffects.filledWithOil)) return bullets[3];
-                    return new BulletType(0,0){{
+                    if(unit.hasEffect(OlStatusEffects.filledWithGlacium)) return bullets[0];
+                    if(unit.hasEffect(OlStatusEffects.filledWithWater)) return bullets[1];
+                    if(unit.hasEffect(OlStatusEffects.filledWithSlag)) return bullets[2];
+                    if(unit.hasEffect(OlStatusEffects.filledWithOil)) return bullets[3];
+                    return new BulletType(0, 0){{
                         shootEffect = smokeEffect = hitEffect = despawnEffect = Fx.none;
                     }};
                 };
@@ -466,7 +457,7 @@ public class OlUnitTypes {
             }});
         }};
 
-        centurion  = new GlassmoreUnitType("centurion"){{
+        centurion = new GlassmoreUnitType("centurion"){{
             constructor = MechUnit::create;
             speed = 0.4f;
             hitSize = 9f;
@@ -526,7 +517,7 @@ public class OlUnitTypes {
             }});
         }};
 
-        praetorian = new GlassmoreUnitType("praetorian") {{
+        praetorian = new GlassmoreUnitType("praetorian"){{
             constructor = MechUnit::create;
             speed = 0.3f;
             hitSize = 16f;
@@ -534,13 +525,13 @@ public class OlUnitTypes {
             health = 400;
             range = 80f;
 
-            parts.add(new ConstructPart("-can") {{
+            parts.add(new ConstructPart("-can"){{
                 y = 3.75f;
                 outlineLayerOffset = -0.01f;
                 progress = PartProgress.reload.inv();
             }});
 
-            weapons.add(new Weapon("") {{
+            weapons.add(new Weapon(""){{
                 x = 0f;
                 y = 3.75f;
                 reload = 100f;
@@ -549,7 +540,7 @@ public class OlUnitTypes {
                 shootCone = 45f;
 
                 shootSound = Sounds.missileLarge;
-                bullet = new LaunchBulletType(1f, 0) {{
+                bullet = new LaunchBulletType(1f, 0){{
                     sprite = "omaloon-praetorian-can";
                     frontColor = Color.white;
                     lifetime = 120f;
@@ -561,7 +552,7 @@ public class OlUnitTypes {
                     trailLength = 5;
 
                     despawnSound = Sounds.artillery;
-                    despawnEffect = new WaveEffect() {{
+                    despawnEffect = new WaveEffect(){{
                         colorFrom = colorTo = Color.valueOf("FEB380");
                         interp = Interp.bounceOut;
                         lifetime = 60f;
@@ -574,7 +565,7 @@ public class OlUnitTypes {
                     shadowInterp = Interp.circleOut;
 
                     fragBullets = 3;
-                    fragBullet = new BasicBulletType(6f, 10, "omaloon-cross-bullet") {{
+                    fragBullet = new BasicBulletType(6f, 10, "omaloon-cross-bullet"){{
                         frontColor = backColor = hitColor = trailColor = Color.valueOf("FEB380");
                         lifetime = 20f;
                         width = height = 12f;
@@ -591,9 +582,9 @@ public class OlUnitTypes {
         //endregion
 
         //region vegetable
-        cilantro = new GlassmoreUnitType("cilantro") {{
+        cilantro = new GlassmoreUnitType("cilantro"){{
             flying = lowAltitude = true;
-						health = 160;
+            health = 160;
             hitSize = 8f;
 
             accel = 0.05f;
@@ -603,7 +594,7 @@ public class OlUnitTypes {
 
             constructor = UnitEntity::create;
 
-            weapons.addAll(new Weapon() {{
+            weapons.addAll(new Weapon(){{
                 mirror = false;
 
                 x = 0;
@@ -615,7 +606,7 @@ public class OlUnitTypes {
                 shootCone = 45f;
 
                 shootSound = Sounds.lasershoot;
-                bullet = new BasicBulletType(2f, 6, "omaloon-triangle-bullet") {{
+                bullet = new BasicBulletType(2f, 6, "omaloon-triangle-bullet"){{
                     width = height = 8f;
                     shrinkY = 0f;
                     trailWidth = 2f;
@@ -630,9 +621,9 @@ public class OlUnitTypes {
             }});
         }};
 
-        basil = new GlassmoreUnitType("basil") {{
+        basil = new GlassmoreUnitType("basil"){{
             flying = lowAltitude = true;
-						health = 280;
+            health = 280;
             hitSize = 20f;
 
             drag = 0.09f;
@@ -645,7 +636,7 @@ public class OlUnitTypes {
 
             constructor = UnitEntity::create;
 
-            weapons.addAll(new Weapon() {{
+            weapons.addAll(new Weapon(){{
                 mirror = false;
                 continuous = alwaysContinuous = true;
 
@@ -653,8 +644,8 @@ public class OlUnitTypes {
                 y = -3f;
                 shootSound = Sounds.smelter;
 
-                bullet = new ContinuousFlameBulletType(5) {{
-                    colors = new Color[] {Color.valueOf("8CA9E8"), Color.valueOf("8CA9E8"), Color.valueOf("D1EFFF")};
+                bullet = new ContinuousFlameBulletType(5){{
+                    colors = new Color[]{Color.valueOf("8CA9E8"), Color.valueOf("8CA9E8"), Color.valueOf("D1EFFF")};
 
                     lifetime = 60f;
 
@@ -668,7 +659,7 @@ public class OlUnitTypes {
                     pierceCap = 1;
                     flareColor = Color.valueOf("D1EFFF");
 
-                    hitEffect = new ParticleEffect() {{
+                    hitEffect = new ParticleEffect(){{
                         lifetime = 30f;
                         length = 20f;
 
@@ -681,9 +672,9 @@ public class OlUnitTypes {
             }});
         }};
 
-        sage = new GlassmoreUnitType("sage") {{
+        sage = new GlassmoreUnitType("sage"){{
             flying = lowAltitude = true;
-						health = 550;
+            health = 550;
             hitSize = 35f;
 
             speed = 0.8f;
@@ -697,11 +688,11 @@ public class OlUnitTypes {
             engineSize = 6f;
             setEnginesMirror(new UnitEngine(10, -14f, 3, -45));
 
-            BulletType shootType = new BasicBulletType(2f, 5) {{
+            BulletType shootType = new BasicBulletType(2f, 5){{
                 lifetime = 55f;
 
-								splashDamage = 20f;
-								splashDamageRadius = 32f;
+                splashDamage = 20f;
+                splashDamageRadius = 32f;
 
                 width = height = 8f;
                 shrinkY = 0f;
@@ -717,30 +708,30 @@ public class OlUnitTypes {
             }};
 
             weapons.addAll(
-              new Weapon("omaloon-sage-salvo") {{
-                  reload = 90f;
-                  rotate = true;
-                  rotateSpeed = 12f;
-                  x = 6.5f;
-                  y = 1f;
+            new Weapon("omaloon-sage-salvo"){{
+                reload = 90f;
+                rotate = true;
+                rotateSpeed = 12f;
+                x = 6.5f;
+                y = 1f;
 
-                  shoot.firstShotDelay = 40f;
+                shoot.firstShotDelay = 40f;
 
-                  shootCone = 45f;
+                shootCone = 45f;
 
-                  shootSound = Sounds.missile;
-                  bullet = shootType;
-              }},
-              new Weapon("omaloon-sage-salvo") {{
-                  reload = 90f;
-                  rotate = true;
-                  rotateSpeed = 14f;
-                  x = -10.25f;
-                  y = -8f;
+                shootSound = Sounds.missile;
+                bullet = shootType;
+            }},
+            new Weapon("omaloon-sage-salvo"){{
+                reload = 90f;
+                rotate = true;
+                rotateSpeed = 14f;
+                x = -10.25f;
+                y = -8f;
 
-                  shootSound = Sounds.missile;
-                  bullet = shootType;
-              }}
+                shootSound = Sounds.missile;
+                bullet = shootType;
+            }}
             );
         }};
         //endregion
