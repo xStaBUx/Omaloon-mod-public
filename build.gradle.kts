@@ -62,7 +62,7 @@ fun arc(module: String): String {
 }
 
 fun arcLibrary(module: String): String {
-    return "com.github.Zelaux.ArcLibrary$module:$arcLibraryVersion"
+    return "com.github.Zelaux.ArcLibrary:${module.trim(':').replace(':', '-')}:$arcLibraryVersion"
 }
 
 fun zelauxCore(module: String): String {
@@ -150,7 +150,6 @@ project(":") {
             arg("classPrefix", "Ol")
         }
     }
-    dependencies {
 
     //Added debuging diring compilation to debug annotation processors
     tasks.withType(JavaCompile::class).configureEach {
@@ -181,6 +180,7 @@ project(":") {
 
         compileOnly(mindustry(":core"))
         compileOnly(arc(":arc-core"))
+        implementation(arcLibrary(":graphics:drawText"))
         implementation(arcLibrary(":graphics-draw3d"))
         implementation(arcLibrary(":graphics-dashDraw"))
         implementation(arcLibrary(":graphics-extendedDraw"))

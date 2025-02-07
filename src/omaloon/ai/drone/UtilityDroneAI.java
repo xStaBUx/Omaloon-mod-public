@@ -1,24 +1,30 @@
 package omaloon.ai.drone;
 
+import arc.graphics.g2d.*;
 import arc.struct.Queue;
 import arc.util.Time;
 import arc.util.Tmp;
+import arclibrary.graphics.*;
 import mindustry.content.Fx;
 import mindustry.entities.units.BuildPlan;
 import mindustry.gen.Call;
 import mindustry.gen.Unit;
+import mindustry.graphics.*;
 import mindustry.type.Item;
+import mindustry.ui.*;
 import mindustry.world.Tile;
 import mindustry.world.blocks.ConstructBlock;
 import mindustry.world.blocks.storage.CoreBlock;
 import ol.gen.OlCall;
 import omaloon.ai.DroneAI;
+import omaloon.utils.*;
 
 import static mindustry.Vars.mineTransferRange;
 
 public class UtilityDroneAI extends DroneAI {
     public float mineRangeScl = 0.75f;
     public float buildRangeScl = 0.75f;
+    public float buildRangeSclInv =1-buildRangeScl;
 
     public UtilityDroneAI(Unit owner) {
         super(owner);
@@ -67,6 +73,18 @@ public class UtilityDroneAI extends DroneAI {
 
 
         int totalSkipped = 0;
+        if(DebugDraw.isDraw()){
+            DrawText.defaultFont= Fonts.def;
+            for(int i = 0; i < plans.size; i++){
+                BuildPlan plan = plans.get(i);
+                int i1 = i;
+                DebugDraw.request(()->{
+                    Draw.draw(Layer.end,()->{
+                        DrawText.drawText(plan,""+i1);
+                    });
+                });
+            }
+        }
         //IMPORTANT unit.plans.size must be 0
         for (int i = 0; i < plans.size; i++) {
             BuildPlan buildPlan = plans.first();
@@ -76,14 +94,19 @@ public class UtilityDroneAI extends DroneAI {
                 break;
             }
             plans.removeFirst();
+            Fx.fireSmoke.at(buildPlan);
+            if(buildPlan.stuck){
+//                Fx.heal.at();
+            }
             plans.addLast(buildPlan);
             totalSkipped++;
         }
         if (totalSkipped == plans.size && !(owner.buildPlan().tile().build instanceof ConstructBlock.ConstructBuild))
             return false;
 
-        moveTo(plans.first().tile(), unit.type.buildRange * buildRangeScl, 30f);
-        if(!unit.within(plans.first(),unit.type.buildRange)){
+        float myRange = unit.type.buildRange;
+        moveTo(plans.first().tile(), myRange * buildRangeScl, 30f);
+        if(!unit.within(plans.first(), myRange - myRange*buildRangeSclInv/2)){
             return true;
         }
         /*if(!Vars.headless && owner== Vars.player.unit()){
