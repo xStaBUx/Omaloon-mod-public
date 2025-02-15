@@ -108,12 +108,10 @@ public class DroneAbility extends Ability{
             return false;
         });
 
-        if(data < maxDroneCount){
-            if(timer > spawnTime){
-                spawnDrone();
-                timer = 0;
-            }
-        }
+        if(data >= maxDroneCount) return;
+        if(timer <= spawnTime) return;
+        spawnDrone();
+        timer = 0;
     }
 
     protected void spawnDrone(){
