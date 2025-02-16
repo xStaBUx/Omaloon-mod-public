@@ -3,6 +3,7 @@ package omaloon.utils;
 import arc.*;
 import arc.graphics.g2d.*;
 import arc.struct.*;
+import mindustry.*;
 import mindustry.game.EventType.*;
 import mindustry.graphics.*;
 import org.intellij.lang.annotations.*;
@@ -55,7 +56,7 @@ public class DebugDraw{
     }
 
     public static boolean isDraw(){
-        return isDraw;
+        return isDraw && !Vars.headless;
     }
 
     public static void switchEnabled(){
