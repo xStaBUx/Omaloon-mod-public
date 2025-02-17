@@ -464,28 +464,33 @@ public class OlUnitTypes{
             health = 250;
             range = 100;
 
+            outlineRegion = atlas.find("omaloon-centurion-outline");
+            alwaysCreateOutline = true;
+
             weapons.add(new Weapon("omaloon-centurion-weapon"){{
                 shootSound = OlSounds.theShoot;
                 mirror = true;
                 top = false;
 
-                x = 5.5f;
-                y = 0.7f;
+                layerOffset = -0.001f;
+                reload = 35f;
+                x = 5.75f;
+                y = 0.27f;
                 shootX = -0.5f;
                 shootY = 5.5f;
-                reload = 35f;
-                recoil = 0.6f;
+                recoil = 1.6f;
+                inaccuracy = 25;
 
-                shoot.shots = 2;
-                shoot.shotDelay = 4f;
+                shoot.shots = 4;
+                shoot.shotDelay = 1f;
 
                 shootCone = 45f;
 
                 ejectEffect = Fx.casing1;
-                bullet = new BasicBulletType(2.5f, 5){{
-                    width = 7f;
-                    height = 7f;
-                    lifetime = 35f;
+                bullet = new BasicBulletType(5.5f, 5){{
+                    width = 4f;
+                    height = 4f;
+                    lifetime = 12f;
 
                     maxRange = 100;
 
@@ -493,26 +498,8 @@ public class OlUnitTypes{
                     hitEffect = Fx.none;
                     hitColor = backColor = trailColor = Color.valueOf("feb380");
 
-                    trailWidth = 1.3f;
+                    trailWidth = 0.8f;
                     trailLength = 10;
-
-                    fragBullet = new BasicBulletType(2.5f, 1.5f){{
-                        width = 4f;
-                        height = 4f;
-                        lifetime = 15f;
-
-                        despawnEffect = Fx.none;
-                        hitEffect = Fx.none;
-                        hitColor = backColor = trailColor = Color.valueOf("feb380");
-
-                        trailWidth = 0.8f;
-                        trailLength = 10;
-                    }};
-
-                    fragOnHit = true;
-                    fragBullets = 4;
-                    fragRandomSpread = 45f;
-                    fragVelocityMin = 0.7f;
                 }};
             }});
         }};
