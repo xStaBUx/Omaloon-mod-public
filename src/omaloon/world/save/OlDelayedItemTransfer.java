@@ -1,6 +1,6 @@
 package omaloon.world.save;
 
-import arc.Core;
+import arc.*;
 import arc.struct.Seq;
 import arc.util.io.Reads;
 import arc.util.io.Writes;
@@ -14,6 +14,7 @@ import mindustry.input.InputHandler;
 import mindustry.io.TypeIO;
 import mindustry.type.Item;
 
+import javax.swing.plaf.basic.BasicComboBoxUI.*;
 import java.io.DataInput;
 import java.io.DataOutput;
 
@@ -28,6 +29,10 @@ public class OlDelayedItemTransfer extends OlSaveChunk {
     }
 
     public static void makeRequest(Item item, float x, float y, Unit owner, Building core) {
+        if(core.acceptStack(item,1,owner)==0){
+            InputHandler.transferItemToUnit(item,x,y,owner);
+            return;
+        }
         firstState(item, x, y, owner, core);
     }
 
@@ -50,6 +55,11 @@ public class OlDelayedItemTransfer extends OlSaveChunk {
         Item item = request.item;
         Unit owner = request.owner;
         Building core = request.core;
+        if(core.acceptStack(item,1,owner)==0){
+            requests.remove(request);
+            requestPool.free(request);
+            return;
+        }
         InputHandler.createItemTransfer(item, 1, owner.x, owner.y, core, () -> {
             if (owner.stack().item != item || owner.stack().amount <= 0) return;
             int amount = core.acceptStack(item, 1, owner);
