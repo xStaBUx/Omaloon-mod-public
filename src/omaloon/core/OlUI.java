@@ -37,15 +37,15 @@ public class OlUI {
         StartSplash.show();
         if (Vars.mobile) return;
 
-        shapedEnvPlacerFragment.build(Vars.ui.hudGroup);
-        cliffFragment.build(Vars.ui.hudGroup);
-
         shapedEnvPlacerFragment = new ShapedEnvPlacerFragment();
         cliffFragment = new CliffFragment();
         olInputDialog = new OlInputDialog();
         olGameDataDialog = new OlGameDataDialog();
         olGameDialog = new OlGameDialog();
         olEndDialog = new OlEndDialog();
+
+        shapedEnvPlacerFragment.build(Vars.ui.hudGroup);
+        cliffFragment.build(Vars.ui.hudGroup);
     }
 
     /**
