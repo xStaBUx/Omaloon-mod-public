@@ -134,8 +134,8 @@ public class OmaloonMod extends Mod{
         EntityRegistry.register();
         OlSounds.load();
         OlItems.load();
-        OlLiquids.load();
         OlStatusEffects.load();
+        OlLiquids.load();
         OlUnitTypes.load();
         OlBlocks.load();
         OlWeathers.load();
