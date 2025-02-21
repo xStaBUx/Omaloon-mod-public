@@ -54,17 +54,14 @@ public class OlUI {
      * */
     protected void setKeybinds(KeyBinds.KeyBind... modBindings){
         Time.mark();
-        KeyBinds.KeyBind[] keyBinds = Core.keybinds.getKeybinds();
-        KeyBinds.KeyBind[] defs = new KeyBinds.KeyBind[keyBinds.length + modBindings.length];
-        for (int i = 0; i < defs.length; i++) {
-            if (i<keyBinds.length){
-                defs[i]=keyBinds[i];
-            } else {
-                defs[i]= modBindings[i-keyBinds.length];
-            }
-        }
+        KeyBinds.KeyBind[] originalBinds = Core.keybinds.getKeybinds();
+        KeyBinds.KeyBind[] newBinds = new KeyBinds.KeyBind[originalBinds.length + modBindings.length];
+
+        System.arraycopy(originalBinds,0,newBinds,0,originalBinds.length);
+        System.arraycopy(modBindings,0,newBinds,originalBinds.length,modBindings.length);
+
         OmaloonMod.olLog("Time to combine arrays: @ms",Time.elapsed());
-        Core.keybinds.setDefaults(defs);
+        Core.keybinds.setDefaults(newBinds);
         settings.load();
     }
 }
