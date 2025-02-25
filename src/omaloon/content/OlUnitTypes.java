@@ -9,7 +9,6 @@ import mindustry.ai.types.*;
 import mindustry.content.*;
 import mindustry.entities.bullet.*;
 import mindustry.entities.effect.*;
-import mindustry.entities.part.*;
 import mindustry.entities.pattern.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -22,7 +21,7 @@ import omaloon.entities.part.*;
 import omaloon.gen.*;
 import omaloon.type.*;
 
-import static arc.Core.atlas;
+import static arc.Core.*;
 
 public class OlUnitTypes{
     // flying
@@ -263,6 +262,32 @@ public class OlUnitTypes{
                 blurAlpha = 1f;
             }});
             hitSize = 8;
+
+						weapons.add(
+								new Weapon(){{
+										x = 0;
+										y = 4;
+
+										shootY = 0;
+
+										mirror = false;
+
+										reload = 30;
+
+										rotate = true;
+										rotateSpeed = 360f;
+										rotationLimit = 60f;
+
+										controllable = false;
+										autoTarget = true;
+										targetInterval = targetSwitchInterval = 0f;
+
+										bullet = new BulletType(1f, 10){{
+												lifetime = 2;
+												hitSize = 2;
+										}};
+								}}
+						);
         }};
 
         lumen = new GlassmoreUnitType("lumen"){{
