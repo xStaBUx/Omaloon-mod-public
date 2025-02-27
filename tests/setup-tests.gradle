@@ -1,7 +1,15 @@
 test {
     useJUnitPlatform()
 }
+/*compileTestJava{
+    options.debug = true
+    options.fork = true
+    options.compilerArgs.add("-g")
 
+    options.forkOptions.jvmArgs.add(
+            "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5008"
+    )
+}*/
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.1'
