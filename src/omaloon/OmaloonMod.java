@@ -61,7 +61,7 @@ public class OmaloonMod extends Mod{
             );
         }
 
-        OlVars.onClient(() -> {
+        OlVars.onClientLoad(() -> {
             Vars.maps.all().removeAll(map -> {
                 if(map.mod == null || !map.mod.name.equals("omaloon")){
                     return false;

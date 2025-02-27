@@ -5,6 +5,7 @@ import arc.func.*;
 import arc.util.*;
 import lombok.*;
 import mindustry.*;
+import mindustry.game.EventType.*;
 import omaloon.ui.*;
 
 import static arc.Core.settings;
@@ -62,7 +63,14 @@ public class OlVars{
         settings.load();
     }
 
-    public static void onClient(Runnable runnable){
-        Events.on(ClientLauncher.class, it -> runnable.run());
+    public static void onClientLoad(Runnable runnable){
+        Events.on(ClientLoadEvent.class, it -> runnable.run());
+    }
+    public static void onServerLoad(Runnable runnable){
+        Events.on(ServerLoadEvent.class, it -> runnable.run());
+    }
+    public static void onAnyLoad(Runnable runnable){
+        onClientLoad(runnable);
+        onServerLoad(runnable);
     }
 }
