@@ -3,12 +3,13 @@ package omaloon;
 import arc.*;
 import arc.scene.actions.*;
 import arc.util.*;
+import arclibrary.settings.*;
 import mindustry.*;
-import mindustry.content.TechTree.*;
 import mindustry.game.*;
 import mindustry.mod.*;
 import mindustry.type.*;
 import ol.gen.*;
+import ol.gen.OlCall;
 import omaloon.content.*;
 import omaloon.core.*;
 import omaloon.core.extra.*;
@@ -42,6 +43,7 @@ public class OmaloonMod extends Mod{
 
     public OmaloonMod(){
         OlCall.registerPackets();
+        SettingKeyGroup.defaultGroup.eachKey(SettingKey::setDefault);
         new OlDelayedItemTransfer();
 
         appListener(new ApplicationListener(){
@@ -94,20 +96,6 @@ public class OmaloonMod extends Mod{
 
     public static void olLog(String string, Object... args){
         Log.infoTag("omaloon", Strings.format(string, args));
-    }
-
-    public static void resetSaves(Planet planet){
-        planet.sectors.each(sector -> {
-            if(!sector.hasSave()) return;
-            sector.save.delete();
-            sector.save = null;
-        });
-    }
-
-    public static void resetTree(TechNode root){
-        root.reset();
-        root.content.clearUnlock();
-        root.children.each(OmaloonMod::resetTree);
     }
 
     @Override
