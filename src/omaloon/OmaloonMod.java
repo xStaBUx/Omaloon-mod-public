@@ -7,9 +7,7 @@ import arclibrary.settings.*;
 import mindustry.*;
 import mindustry.game.*;
 import mindustry.mod.*;
-import mindustry.type.*;
 import ol.gen.*;
-import ol.gen.OlCall;
 import omaloon.content.*;
 import omaloon.core.*;
 import omaloon.core.extra.*;
@@ -40,6 +38,7 @@ public class OmaloonMod extends Mod{
     public static OlControl control;
     public static EditorListener editorListener;
     public static OlNetClient netClient;
+    public static OlRenderer renderer;
 
     public OmaloonMod(){
         OlCall.registerPackets();
@@ -56,11 +55,12 @@ public class OmaloonMod extends Mod{
             editorListener = appListener(new EditorListener());
             ui = appListener(new OlUI());
             control = appListener(new OlControl());
-            netClient= RelatedApplicationListener.register(
+            netClient = RelatedApplicationListener.register(
                 new OlNetClient(),
                 RelativeOrder.before,
                 Vars.netClient
             );
+            renderer = appListener(new OlRenderer());
         }
 
         OlVars.onClientLoad(() -> {
