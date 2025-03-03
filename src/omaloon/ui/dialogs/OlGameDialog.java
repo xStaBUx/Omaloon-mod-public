@@ -58,6 +58,7 @@ public class OlGameDialog extends BaseDialog{
     public void rebuild(){
         cont.clear();
 
+
         addSlider(
             "@setting.omaloon-shield-opacity", null, "omaloon-shield-opacity",
             new Slider(0, 100, 1, false), 20,
